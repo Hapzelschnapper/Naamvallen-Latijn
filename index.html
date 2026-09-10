@@ -285,6 +285,30 @@ const DE_VERBS = [['mach','maken, doen'],['spiel','spelen'],['lern','leren'],['l
     stem, nl, de: stem+'en', needsE: /[td]$/.test(stem)
   }));
 
+/* Strong verbs with a -> ä stem change in du/er-sie-es (Präsens only) */
+function deAaForms(stem, aStem, needsE){
+  return needsE
+    ? [stem+'e', aStem+'st', aStem+'t', stem+'en', stem+'et', stem+'en']
+    : [stem+'e', aStem+'st', aStem+'t', stem+'en', stem+'t', stem+'en'];
+}
+const DE_STRONG_A = [
+  ['trag','träg','dragen'],['fahr','fähr','rijden, varen'],['schlaf','schläf','slapen'],
+  ['lauf','läuf','hardlopen, rennen'],['fall','fäll','vallen'],['schlag','schläg','slaan'],
+  ['wasch','wäsch','wassen']
+].map(([stem,aStem,nl])=>({stem,aStem,nl,de:stem+'en',needsE:/[td]$/.test(stem)}));
+
+/* Modal verbs, möchten and wissen: irregular, stored directly */
+const DE_MODALS = [
+  {de:'müssen', nl:'moeten', forms:['muss','musst','muss','müssen','müsst','müssen']},
+  {de:'können', nl:'kunnen', forms:['kann','kannst','kann','können','könnt','können']},
+  {de:'dürfen', nl:'mogen (toestemming hebben)', forms:['darf','darfst','darf','dürfen','dürft','dürfen']},
+  {de:'wollen', nl:'willen', forms:['will','willst','will','wollen','wollt','wollen']},
+  {de:'mögen', nl:'mogen, leuk vinden', forms:['mag','magst','mag','mögen','mögt','mögen']},
+  {de:'möchten', nl:'graag willen', forms:['möchte','möchtest','möchte','möchten','möchtet','möchten']},
+  {de:'wissen', nl:'weten', forms:['weiß','weißt','weiß','wissen','wisst','wissen']}
+];
+
+
 /* ================= FRENCH: VERB ENGINE ================= */
 function frPresentER(stem){ return [stem+'e',stem+'es',stem+'e',stem+'ons',stem+'ez',stem+'ent']; }
 function frPresentIR(stem){ return [stem+'is',stem+'is',stem+'it',stem+'issons',stem+'issez',stem+'issent']; }
@@ -471,12 +495,19 @@ function deNounLeren(){
   <tr style="--case-color:var(--dat);"><th>Dativ</th><td>meewerkend voorwerp ('aan/voor')</td></tr>
   <tr style="--case-color:var(--acc);"><th>Akkusativ</th><td>lijdend voorwerp</td></tr>
   </tbody></table>
+  <div class="note">Nederlandse lesmethodes nummeren de naamvallen vaak: <strong>1e naamval</strong> = Nominativ, <strong>2e naamval</strong> = Genitiv, <strong>3e naamval</strong> = Dativ, <strong>4e naamval</strong> = Akkusativ. Je herkent ze ook door te vragen: <em>wie/wat</em> + persoonsvorm → 1e naamval (onderwerp); <em>wat</em> + persoonsvorm + onderwerp → 4e naamval (lijdend voorwerp).</div>
   <div class="card">
     <p style="margin-bottom:6px;"><em>Der Mann sieht den Hund.</em> = <em>Den Hund sieht der Mann.</em></p>
     <p style="margin-bottom:0;color:var(--ink);">Beide zinnen betekenen "De man ziet de hond" — <em>den Hund</em> (accusatief) blijft het lijdend voorwerp, ongeacht de plek in de zin.</p>
   </div>
   <div class="note">Wel verschuift de <strong>nadruk</strong>: het woord dat vooraan staat, krijgt de meeste klemtoon. <em>"Den Hund sieht der Mann"</em> benadrukt <em>den Hund</em> net iets sterker dan de neutrale volgorde <em>"Der Mann sieht den Hund"</em> — vergelijkbaar met hoe "De hónd ziet de man" in het Nederlands net iets anders klinkt.</div>
-  <h3>Bepaald lidwoord (der/die/das)</h3>
+  <h3>De der-Gruppe en de ein-Gruppe</h3>
+  <p>Duitse bijwoorden vóór het zelfstandig naamwoord vallen in twee groepen die allebei op dezelfde manier verbuigen als hun "kopwoord":</p>
+  <ul style="color:var(--ink-dim);">
+    <li><strong>der-Gruppe</strong> — verbuigt als <em>der/die/das/die</em>: ook <em>dieser</em> (deze/dit), <em>welcher</em> (welke), <em>jeder</em> (elke, alleen enkelvoud) en <em>alle</em> (alle, alleen meervoud);</li>
+    <li><strong>ein-Gruppe</strong> — verbuigt als <em>ein/eine/ein</em>: ook <em>kein</em> (geen) en de bezittelijke voornaamwoorden <em>mein/dein/sein/ihr/unser/euer/Ihr</em> (mijn/jouw/zijn/haar/ons/jullie/uw).</li>
+  </ul>
+  <h3>Bepaald lidwoord (der/die/das) — der-Gruppe</h3>
   ${tableHTML(['mannelijk (der)','vrouwelijk (die)','onzijdig (das)','meervoud (die)'],[
     {label:'Nom.',color:'var(--nom)'},{label:'Gen.',color:'var(--gen)'},{label:'Dat.',color:'var(--dat)'},{label:'Acc.',color:'var(--acc)'}
   ], (r,c)=>{
@@ -485,11 +516,16 @@ function deNounLeren(){
     const pl=deArtForms('m'); const plKeys=['nomPl','genPl','datPl','accPl']; return pl[plKeys[r]];
   })}
   <div class="note">Het zelfstandig naamwoord zelf verandert bijna nooit — alleen de genitief enkelvoud (mannelijk/onzijdig) krijgt vaak een extra <em>-s</em> of <em>-es</em> (<em>der Mann → des Mannes</em>), en de datief meervoud een <em>-n</em> (<em>den Männern</em>). Deze cursus oefent vooral het lidwoord, de belangrijkste naamval-marker.</div>
-  <h3>Onbepaald lidwoord (ein/eine)</h3>
-  <p>Net als "der/die/das" verandert ook "ein" (een) mee: <em>ein Mann</em> (nom.), <em>eines Mannes</em> (gen.), <em>einem Mann</em> (dat.), <em>einen Mann</em> (acc.) — mannelijk en onzijdig verbuigen gelijk aan elkaar behalve in de nominatief/accusatief, vrouwelijk krijgt steeds <em>eine/einer</em>.</p>
+  <h3>Onbepaald lidwoord (ein/eine) — ein-Gruppe</h3>
+  <p>Net als "der/die/das" verandert ook "ein" (een) mee: <em>ein Mann</em> (nom.), <em>eines Mannes</em> (gen.), <em>einem Mann</em> (dat.), <em>einen Mann</em> (acc.) — mannelijk en onzijdig verbuigen gelijk aan elkaar behalve in de nominatief/accusatief, vrouwelijk krijgt steeds <em>eine/einer</em>. <em>Kein</em> en de bezittelijke voornaamwoorden (<em>mein, dein, sein</em>...) krijgen precies dezelfde uitgangen als <em>ein</em>, en hebben — anders dan <em>ein</em> zelf — ook een meervoudsvorm: <em>keine Kinder</em>, <em>meine Kinder</em>.</p>
+  <div class="note">
+    <strong>Stappenplan om de juiste uitgang te vinden:</strong><br>
+    1. Hoort het woord bij de der-Gruppe of de ein-Gruppe?<br>
+    2. Is het bijbehorende zelfstandig naamwoord mannelijk, vrouwelijk, onzijdig of meervoud?<br>
+    3. In welke naamval staat het zinsdeel (vraag desnoods: wie/wat + persoonsvorm → 1e naamval; wat + persoonsvorm + onderwerp → 4e naamval)?
+  </div>
   `;
 }
-
 function deNounOefenen(){
   const cats = {
     masc: { title:'der-woorden', sub:'mannelijk', words: DE_MASC, forms:()=>deArtForms('m') },
@@ -505,6 +541,7 @@ function deNounOefenen(){
 /* ================= CONTENT: GERMAN VERBS ================= */
 function deVerbLeren(){
   const ex = DE_VERBS.find(v=>v.stem==='mach');
+  const strongEx = DE_STRONG_A.find(v=>v.stem==='fahr');
   return `
   <h2>Werkwoordsvervoeging in het Duits</h2>
   <p>Deze cursus oefent twee tijden: de <strong>Präsens</strong> (tegenwoordige tijd) en het <strong>Perfekt</strong> (de gangbare verleden tijd in gesproken Duits, gevormd met <em>haben</em> + voltooid deelwoord).</p>
@@ -514,15 +551,36 @@ function deVerbLeren(){
   <h3>Perfekt — haben + voltooid deelwoord</h3>
   ${tableHTML(['Perfekt'], PERSON_LABEL_DE.map(p=>({label:p})), (r)=>dePerfektForms(ex.stem, ex.needsE)[r], 'machen: gemacht')}
   <p>Het voltooid deelwoord wordt gevormd als <em>ge + stam + t</em> (of <em>+et</em> bij stammen op -t/-d): <em>gemacht, gearbeitet</em>. Deze cursus gebruikt alleen regelmatige werkwoorden met <em>haben</em>.</p>
+
+  <h2>Sterke werkwoorden met a → ä</h2>
+  <p>Bij sterke werkwoorden met een <em>a</em> in de stam verandert die klinker in een <em>ä</em>, maar alleen bij de <em>du</em>- en de <em>er/sie/es/man</em>-vorm.</p>
+  <h3>fahren (rijden, varen)</h3>
+  ${tableHTML(['Präsens'], PERSON_LABEL_DE.map(p=>({label:p})), (r)=>deAaForms(strongEx.stem, strongEx.aStem, strongEx.needsE)[r])}
+  <div class="note">Andere veelvoorkomende a→ä-werkwoorden: <em>einladen</em> (uitnodigen), <em>halten</em> (houden, stoppen), <em>lassen</em> (laten), <em>raten</em> (raden), <em>schlagen</em> (slaan), <em>waschen</em> (wassen) — een deel daarvan heeft nog een extra klankverandering in de du/er-vorm, dus die oefen je hier nog niet.</div>
+
+  <h2>Modale hulpwerkwoorden</h2>
+  <p>Modale werkwoorden geven aan of iets wenselijk, mogelijk of noodzakelijk is. De ich-vorm en de er/sie/es-vorm zijn bij deze werkwoorden altijd gelijk aan elkaar en hebben geen uitgang.</p>
+  ${tableHTML(DE_MODALS.map(m=>`${m.de} (${m.nl})`), PERSON_LABEL_DE.map(p=>({label:p})), (r,c)=>DE_MODALS[c].forms[r])}
+  <div class="note"><em>Möchten</em> (graag willen) en <em>wissen</em> (weten) horen er ook bij: <em>möchten</em> krijgt wél gewoon een uitgang per persoon, <em>wissen</em> heeft — net als de echte modale werkwoorden — geen uitgang bij ich/er/sie/es/man: <em>ich weiß, er weiß</em>.</div>
   `;
 }
 
 function deVerbOefenen(){
-  const cats = { verbs: { title:'Regelmatige werkwoorden', sub:'Präsens & Perfekt', words: DE_VERBS, forms:(w)=>{
-    const out={}; dePresentForms(w.stem,w.needsE).forEach((f,i)=>out['pres'+i]=f);
-    dePerfektForms(w.stem,w.needsE).forEach((f,i)=>out['perf'+i]=f);
-    return out;
-  } } };
+  const cats = {
+    verbs: { title:'Regelmatige werkwoorden', sub:'Präsens & Perfekt', words: DE_VERBS, forms:(w)=>{
+      const out={}; dePresentForms(w.stem,w.needsE).forEach((f,i)=>out['pres'+i]=f);
+      dePerfektForms(w.stem,w.needsE).forEach((f,i)=>out['perf'+i]=f);
+      return out;
+    } },
+    strong: { title:'Sterke werkwoorden', sub:'a → ä, Präsens', words: DE_STRONG_A, forms:(w)=>{
+      const out={}; deAaForms(w.stem,w.aStem,w.needsE).forEach((f,i)=>out['pres'+i]=f);
+      return out;
+    } },
+    modal: { title:'Modale werkwoorden', sub:'+ möchten & wissen', words: DE_MODALS, forms:(w)=>{
+      const out={}; w.forms.forEach((f,i)=>out['pres'+i]=f);
+      return out;
+    } }
+  };
   return renderOefenCategoryPicker(cats, (word, formKey)=>{
     const tense = formKey.slice(0,4); const person = +formKey.slice(4);
     const tenseLabel = tense==='pres' ? 'Präsens' : 'Perfekt';
