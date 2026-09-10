@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Latijn — De Naamvallen</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#221c15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Latijn">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#221c15;
+    --bg-edge:#161210;
+    --card:#2c2419;
+    --card-2:#332a1d;
+    --ink:#f1e7d2;
+    --ink-dim:#c7b998;
+    --ink-faint:#96876a;
+    --gold:#d9a441;
+    --gold-dim:#a9803a;
+    --nom:#c1453d;
+    --gen:#d9a441;
+    --dat:#5e8c6a;
+    --acc:#4c7bb0;
+    --abl:#a06fa3;
+    --good:#5e8c6a;
+    --bad:#c1453d;
+    --radius:6px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background: radial-gradient(ellipse 1200px 800px at 50% -10%, var(--card) 0%, var(--bg) 55%, var(--bg-edge) 100%);
+    background-color:var(--bg);
+    color:var(--ink);
+    font-family:'Nunito', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:28px 20px 80px;}
+  header{text-align:center;margin-bottom:28px;}
+  h1{
+    font-family:'Cinzel',serif;
+    font-weight:700;
+    font-size:clamp(1.7rem, 5vw, 2.5rem);
+    letter-spacing:0.5px;
+    margin:0 0 8px;
+    color:var(--ink);
+    text-shadow: 0 1px 0 rgba(0,0,0,.4);
+  }
+  .subtitle{color:var(--ink-dim);font-size:1rem;margin:0 0 24px;font-style:italic;}
+  nav.tabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+  nav.tabs button{
+    font-family:'Nunito',sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    color:var(--ink-dim);
+    background:var(--card);
+    border:1px solid rgba(217,164,65,0.25);
+    border-radius:var(--radius);
+    padding:10px 18px;
+    cursor:pointer;
+    transition:border-color .15s, color .15s, background .15s;
+  }
+  nav.tabs button:hover{border-color:var(--gold-dim);color:var(--ink);}
+  nav.tabs button.active{
+    background:var(--gold);
+    color:#221c15;
+    border-color:var(--gold);
+  }
+  nav.tabs button:focus-visible, button:focus-visible, a:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+  main{margin-top:26px;}
+  .panel{display:none;}
+  .panel.active{display:block;animation:fadein .35s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){
+    .panel.active{animation:none;}
+  }
+
+  h2{
+    font-family:'Cinzel',serif;
+    font-weight:700;
+    font-size:1.4rem;
+    color:var(--gold);
+    border-bottom:1px solid rgba(217,164,65,0.3);
+    padding-bottom:8px;
+    margin:38px 0 16px;
+  }
+  h2:first-child{margin-top:0;}
+  h3{
+    font-family:'Cinzel',serif;
+    font-weight:600;
+    font-size:1.1rem;
+    color:var(--ink);
+    margin:22px 0 10px;
+  }
+  p{margin:0 0 14px;color:var(--ink-dim);}
+  strong{color:var(--ink);}
+
+  .card{
+    background:var(--card);
+    border:1px solid rgba(217,164,65,0.2);
+    border-radius:var(--radius);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+    padding:18px 20px;
+    margin-bottom:16px;
+  }
+
+  .case-card{
+    background:var(--card);
+    border-left:4px solid var(--case-color, var(--gold));
+    border-radius:0 var(--radius) var(--radius) 0;
+    padding:14px 18px;
+    margin-bottom:14px;
+  }
+  .case-card h3{
+    margin:0 0 6px;
+    color:var(--case-color, var(--gold));
+    font-variant:small-caps;
+    letter-spacing:0.5px;
+  }
+  .case-card .func{color:var(--ink-dim);font-size:.92rem;margin-bottom:10px;}
+  .ex{margin:6px 0;padding-left:14px;border-left:2px solid rgba(255,255,255,0.08);}
+  .ex .la{color:var(--ink);font-style:italic;}
+  .ex .la b{color:var(--case-color, var(--gold));font-style:normal;}
+  .ex .nl{color:var(--ink-faint);font-size:.9rem;}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0 22px;font-size:.95rem;}
+  caption{text-align:left;color:var(--ink-dim);font-size:.85rem;margin-bottom:6px;font-style:italic;}
+  th, td{padding:8px 10px;text-align:left;border-bottom:1px solid rgba(217,164,65,0.15);}
+  thead th{
+    font-family:'Cinzel',serif;
+    font-weight:600;
+    color:var(--ink);
+    font-size:.85rem;
+    border-bottom:1px solid var(--gold-dim);
+  }
+  tbody th{
+    font-family:'Cinzel',serif;
+    font-weight:600;
+    font-size:.85rem;
+    font-variant:small-caps;
+    letter-spacing:.3px;
+    color:var(--case-color);
+    white-space:nowrap;
+  }
+  tbody td{color:var(--ink-dim);font-family:'Nunito',sans-serif;}
+  tbody tr:last-child td, tbody tr:last-child th{border-bottom:none;}
+
+  .note{
+    background:var(--card-2);
+    border:1px dashed rgba(217,164,65,0.35);
+    border-radius:var(--radius);
+    padding:12px 16px;
+    font-size:.9rem;
+    color:var(--ink-dim);
+    margin:16px 0;
+  }
+
+  /* Oefenen */
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+  @media (max-width:520px){.cat-grid{grid-template-columns:1fr;}}
+  .cat-btn{
+    background:var(--card);
+    border:1px solid rgba(217,164,65,0.25);
+    border-radius:var(--radius);
+    padding:16px;
+    text-align:left;
+    cursor:pointer;
+    color:var(--ink);
+    font-family:'Nunito',sans-serif;
+  }
+  .cat-btn strong{display:block;font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;margin-bottom:4px;}
+  .cat-btn span{color:var(--ink-faint);font-size:.85rem;}
+  .cat-btn:hover{border-color:var(--gold);}
+  .cat-btn.active{border-color:var(--gold);background:var(--card-2);box-shadow:0 0 0 1px var(--gold);}
+
+  details.wordlist{margin-bottom:20px;}
+  details.wordlist summary{
+    cursor:pointer;color:var(--gold);font-family:'Cinzel',serif;font-size:.95rem;padding:8px 0;
+  }
+  .word-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 16px;margin-top:8px;font-size:.9rem;}
+  .word-grid div{color:var(--ink-dim);border-bottom:1px solid rgba(255,255,255,.06);padding:4px 0;}
+  .word-grid b{color:var(--ink);}
+
+  #quiz-area{display:none;}
+  #quiz-area.active{display:block;}
+  .quiz-card{
+    background:var(--card);
+    border:1px solid var(--gold-dim);
+    border-radius:var(--radius);
+    padding:22px;
+  }
+  .quiz-meta{display:flex;justify-content:space-between;font-size:.85rem;color:var(--ink-faint);margin-bottom:14px;}
+  .quiz-question{font-size:1.15rem;color:var(--ink);margin-bottom:6px;}
+  .quiz-question .lat-word{font-style:italic;color:var(--gold);}
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+  @media (max-width:480px){.options{grid-template-columns:1fr;}}
+  .opt{
+    font-family:'Nunito',sans-serif;
+    font-size:1rem;
+    font-weight:700;
+    background:var(--card-2);
+    border:1px solid rgba(217,164,65,0.3);
+    color:var(--ink);
+    border-radius:var(--radius);
+    padding:12px;
+    cursor:pointer;
+    transition:transform .1s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--gold);}
+  .opt.correct{background:var(--good);border-color:var(--good);color:#fff;}
+  .opt.wrong{background:var(--bad);border-color:var(--bad);color:#fff;}
+  .opt:disabled{cursor:default;opacity:.85;}
+  .feedback{margin-top:14px;min-height:1.4em;font-weight:700;}
+  .feedback.good{color:var(--good);}
+  .feedback.bad{color:var(--bad);}
+  .next-btn{
+    margin-top:16px;
+    background:var(--gold);
+    color:#221c15;
+    border:none;
+    border-radius:var(--radius);
+    padding:10px 20px;
+    font-weight:800;
+    font-family:'Nunito',sans-serif;
+    cursor:pointer;
+    display:none;
+  }
+  .next-btn.show{display:inline-block;}
+  footer{text-align:center;color:var(--ink-faint);font-size:.8rem;margin-top:50px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Latijn</h1>
+    <p class="subtitle">De vijf naamvallen ontdekken — met uitleg, voorbeelden en oefeningen</p>
+    <nav class="tabs">
+      <button class="tab active" data-tab="uitleg">Uitleg</button>
+      <button class="tab" data-tab="verbuigingen">Verbuigingen</button>
+      <button class="tab" data-tab="oefenen">Oefenen</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ==================== UITLEG ==================== -->
+    <section id="uitleg" class="panel active">
+      <h2>Wat is een naamval?</h2>
+      <p>In het Nederlands herken je de rol van een woord in een zin meestal aan de <strong>plaats</strong> in de zin. "De hond bijt de man" en "De man bijt de hond" betekenen iets heel anders, terwijl er precies dezelfde woorden staan — alleen de volgorde is omgedraaid.</p>
+      <p>In het Latijn werkt dat anders. Een Latijns zelfstandig naamwoord of bijvoeglijk naamwoord <strong>verandert van vorm</strong> (het "verbuigt") afhankelijk van zijn functie in de zin. Zo'n vorm heet een <strong>naamval</strong>. Daardoor mag de woordvolgorde in het Latijn veel vrijer zijn:</p>
+      <div class="card">
+        <p style="margin-bottom:6px;"><em>Canis puellam videt.</em> &nbsp;=&nbsp; <em>Puellam canis videt.</em></p>
+        <p style="margin-bottom:0;color:var(--ink);">Beide zinnen betekenen: <strong>"De hond ziet het meisje."</strong> Het is <em>puellam</em> (met een -m erachter) die vertelt dat "het meisje" hier wordt gezien, niet wie er kijkt — ongeacht waar het woord in de zin staat.</p>
+      </div>
+      <p>Het Latijn kent vijf naamvallen die je veel gebruikt (plus een zesde, de aanspreekvorm, die je bijna nooit nodig hebt). Elke naamval heeft zijn eigen functie:</p>
+
+      <div class="case-card" style="--case-color:var(--nom);">
+        <h3>Nominativus — de nominatief</h3>
+        <p class="func">Het <strong>onderwerp</strong> van de zin: wie of wat doet iets? Vraag: <em>wie/wat?</em></p>
+        <div class="ex"><div class="la"><b>Puella</b> cantat.</div><div class="nl">Het meisje zingt.</div></div>
+        <div class="ex"><div class="la"><b>Canis</b> currit.</div><div class="nl">De hond rent.</div></div>
+      </div>
+
+      <div class="case-card" style="--case-color:var(--gen);">
+        <h3>Genitivus — de genitief</h3>
+        <p class="func">Bezit of een "van"-relatie. Vraag: <em>van wie/wat?</em></p>
+        <div class="ex"><div class="la">Liber <b>puellae</b> in mensa est.</div><div class="nl">Het boek van het meisje ligt op tafel.</div></div>
+        <div class="ex"><div class="la">Nomen <b>viri</b> est Marcus.</div><div class="nl">De naam van de man is Marcus.</div></div>
+      </div>
+
+      <div class="case-card" style="--case-color:var(--dat);">
+        <h3>Dativus — de datief</h3>
+        <p class="func">Het <strong>meewerkend voorwerp</strong>: voor wie of aan wie gebeurt iets? Vraag: <em>aan/voor wie?</em></p>
+        <div class="ex"><div class="la">Pater <b>filio</b> librum dat.</div><div class="nl">Vader geeft een boek aan zijn zoon.</div></div>
+        <div class="ex"><div class="la">Magister <b>puellis</b> fabulam narrat.</div><div class="nl">De meester vertelt de meisjes een verhaal.</div></div>
+      </div>
+
+      <div class="case-card" style="--case-color:var(--acc);">
+        <h3>Accusativus — de accusatief</h3>
+        <p class="func">Het <strong>lijdend voorwerp</strong>: wie of wat ondergaat de handeling? Vraag: <em>wie/wat + werkwoord?</em></p>
+        <div class="ex"><div class="la">Puella <b>canem</b> videt.</div><div class="nl">Het meisje ziet de hond.</div></div>
+        <div class="ex"><div class="la">Milites <b>urbem</b> defendunt.</div><div class="nl">De soldaten verdedigen de stad.</div></div>
+      </div>
+
+      <div class="case-card" style="--case-color:var(--abl);">
+        <h3>Ablativus — de ablatief</h3>
+        <p class="func">Een grote verzamelnaamval: door, met, vanaf, in — meestal een bijwoordelijke bepaling.</p>
+        <div class="ex"><div class="la">Miles <b>gladio</b> pugnat.</div><div class="nl">De soldaat vecht met een zwaard. <em>(zonder voorzetsel: het middel)</em></div></div>
+        <div class="ex"><div class="la">Puella cum <b>matre</b> ambulat.</div><div class="nl">Het meisje wandelt met haar moeder.</div></div>
+        <div class="ex"><div class="la">Roma in <b>Italia</b> est.</div><div class="nl">Rome ligt in Italië. <em>(plaats)</em></div></div>
+      </div>
+
+      <h2>Naamval en functie in de zin</h2>
+      <p>Elke naamval heeft dus een vaste hoofdfunctie, en voor drie ervan kun je een klein woordje in de vertaling gebruiken als geheugensteuntje:</p>
+      <table>
+        <thead><tr><th>naamval</th><th>hoofdfunctie in de zin</th><th>vertaalsteun</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nominativus</th><td>onderwerp</td><td>—</td></tr>
+          <tr style="--case-color:var(--gen);"><th>Genitivus</th><td>bijvoeglijke bepaling</td><td>van</td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dativus</th><td>meewerkend voorwerp</td><td>aan / voor / tegen</td></tr>
+          <tr style="--case-color:var(--acc);"><th>Accusativus</th><td>lijdend voorwerp</td><td>—</td></tr>
+          <tr style="--case-color:var(--abl);"><th>Ablativus</th><td>bijwoordelijke bepaling</td><td>met / door / in</td></tr>
+        </tbody>
+      </table>
+      <div class="card">
+        <p style="margin-bottom:6px;"><em>Servi <span style="color:var(--gen);">regis</span> <span style="color:var(--dat);">urbi</span> <span style="color:var(--acc);">murum</span> <span style="color:var(--abl);">saxis</span> aedificant.</em></p>
+        <p style="margin-bottom:0;color:var(--ink);">De slaven van de koning bouwen voor de stad een muur met rotsblokken.</p>
+      </div>
+      <p>Hier zie je alle vijf naamvallen in één zin: <em>servi</em> (onderwerp, nominativus), <em>regis</em> (van de koning, genitivus), <em>urbi</em> (voor de stad, dativus), <em>murum</em> (lijdend voorwerp, accusativus) en <em>saxis</em> (met rotsblokken, ablativus).</p>
+
+      <div class="note">
+        <strong>Opmerking</strong> — naamvallen kunnen ook een andere functie hebben, bijvoorbeeld bij bepaalde werkwoorden:<br><br>
+        <strong>nominativusaanvulling bij <em>esse</em></strong> (naamwoordelijk deel van het gezegde)<br>
+        <em>Romulus puer est.</em> — Romulus is een jongen.<br>
+        <em>Romulus et Remus pueri sunt.</em> — Romulus en Remus zijn jongens.<br><br>
+        <strong>dativusaanvulling bij werkwoorden als <em>favēre</em> + dat en <em>appropinquare</em> + dat</strong><br>
+        <em>Dei nobis favent.</em> — De goden zijn ons gunstig gezind.<br>
+        <em>Urbi appropinquavimus.</em> — We naderden de stad.
+      </div>
+
+      <div class="note">
+        Er bestaat ook een zesde naamval, de <strong>vocativus</strong> (aanspreekvorm). Deze is gelijk aan de nominativus in enkelvoud en meervoud, behalve bij zelfstandige naamwoorden op <em>-us</em> en <em>-ius</em> in de 2e verbuigingsgroep:<br><br>
+        <em>-us</em> wordt <em>-e</em>: <em>servus</em> → <em>serve</em> — <em>"Veni, serve!"</em> = "Kom, slaaf!"<br>
+        <em>-ius</em> wordt <em>-i</em>: <em>filius</em> → <em>fili</em> — <em>"Veni, fili!"</em> = "Kom, zoon!"<br><br>
+        Omdat je de vocativus zo weinig nodig hebt, oefen je hem in deze cursus niet apart.
+      </div>
+
+      <h2>Enkelvoud en meervoud</h2>
+      <p>Elke naamval bestaat in het <strong>enkelvoud</strong> (één ding) en het <strong>meervoud</strong> (meerdere dingen). Dat geeft in totaal tien vormen per woord: vijf naamvallen × twee getallen. Bijvoorbeeld <em>femina</em> (de vrouw, enkelvoud) tegenover <em>feminae</em> (de vrouwen, meervoud, nominatief).</p>
+
+      <h2>Verbuigingsgroepen</h2>
+      <p>Niet elk Latijns woord krijgt dezelfde uitgangen. Woorden zijn ingedeeld in "families" die <strong>verbuigingsgroepen</strong> heten, elk met hun eigen rijtje uitgangen. Je herkent de verbuigingsgroep van een woord aan de <strong>genitief enkelvoud</strong>, die in elk woordenboek achter het woord staat, bijvoorbeeld <em>puella, puellae</em> — de uitgang <em>-ae</em> verraadt de 1e verbuigingsgroep.</p>
+      <p>In deze cursus oefen je met de drie belangrijkste verbuigingsgroepen voor zelfstandige naamwoorden, en met de meest voorkomende groep bijvoeglijke naamwoorden. Bekijk het tabblad <strong>Verbuigingen</strong> voor de complete uitgangenrijtjes, en ga daarna naar <strong>Oefenen</strong> om ze in te slijpen.</p>
+    </section>
+
+    <!-- ==================== VERBUIGINGEN ==================== -->
+    <section id="verbuigingen" class="panel">
+      <h2>1e verbuigingsgroep — voorbeeld: femina, feminae (de vrouw)</h2>
+      <p>Bijna alle woorden van de 1e verbuigingsgroep zijn vrouwelijk. Een kleine groep — zoals <em>nauta</em> (matroos), <em>agricola</em> (boer) en <em>poeta</em> (dichter) — is mannelijk, ook al verbuigen ze precies hetzelfde.</p>
+      <table>
+        <thead><tr><th></th><th>Enkelvoud</th><th>Meervoud</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nom.</th><td>femin<u>a</u></td><td>femin<u>ae</u></td></tr>
+          <tr style="--case-color:var(--gen);"><th>Gen.</th><td>femin<u>ae</u></td><td>femin<u>arum</u></td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dat.</th><td>femin<u>ae</u></td><td>femin<u>is</u></td></tr>
+          <tr style="--case-color:var(--acc);"><th>Acc.</th><td>femin<u>am</u></td><td>femin<u>as</u></td></tr>
+          <tr style="--case-color:var(--abl);"><th>Abl.</th><td>femin<u>a</u></td><td>femin<u>is</u></td></tr>
+        </tbody>
+      </table>
+
+      <h2>2e verbuigingsgroep</h2>
+      <p>Deze verbuigingsgroep heeft twee varianten: mannelijke woorden op <em>-us</em> en onzijdige woorden op <em>-um</em>.</p>
+      <h3>mannelijk — servus, servi (de slaaf)</h3>
+      <table>
+        <thead><tr><th></th><th>Enkelvoud</th><th>Meervoud</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nom.</th><td>serv<u>us</u></td><td>serv<u>i</u></td></tr>
+          <tr style="--case-color:var(--gen);"><th>Gen.</th><td>serv<u>i</u></td><td>serv<u>orum</u></td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dat.</th><td>serv<u>o</u></td><td>serv<u>is</u></td></tr>
+          <tr style="--case-color:var(--acc);"><th>Acc.</th><td>serv<u>um</u></td><td>serv<u>os</u></td></tr>
+          <tr style="--case-color:var(--abl);"><th>Abl.</th><td>serv<u>o</u></td><td>serv<u>is</u></td></tr>
+        </tbody>
+      </table>
+      <h3>onzijdig — donum, doni (het geschenk)</h3>
+      <table>
+        <caption>Let op: bij onzijdige woorden zijn nominatief en accusatief altijd gelijk.</caption>
+        <thead><tr><th></th><th>Enkelvoud</th><th>Meervoud</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nom.</th><td>don<u>um</u></td><td>don<u>a</u></td></tr>
+          <tr style="--case-color:var(--gen);"><th>Gen.</th><td>don<u>i</u></td><td>don<u>orum</u></td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dat.</th><td>don<u>o</u></td><td>don<u>is</u></td></tr>
+          <tr style="--case-color:var(--acc);"><th>Acc.</th><td>don<u>um</u></td><td>don<u>a</u></td></tr>
+          <tr style="--case-color:var(--abl);"><th>Abl.</th><td>don<u>o</u></td><td>don<u>is</u></td></tr>
+        </tbody>
+      </table>
+
+      <h2>3e verbuigingsgroep — voorbeeld: rex, regis (de koning)</h2>
+      <p>De 3e verbuigingsgroep is lastiger: de nominatief enkelvoud is onvoorspelbaar (je moet hem uit je hoofd leren), maar vanaf de genitief-stam volgen alle andere vormen weer een vast patroon.</p>
+      <table>
+        <thead><tr><th></th><th>Enkelvoud</th><th>Meervoud</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nom.</th><td>rex</td><td>reg<u>es</u></td></tr>
+          <tr style="--case-color:var(--gen);"><th>Gen.</th><td>reg<u>is</u></td><td>reg<u>um</u></td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dat.</th><td>reg<u>i</u></td><td>reg<u>ibus</u></td></tr>
+          <tr style="--case-color:var(--acc);"><th>Acc.</th><td>reg<u>em</u></td><td>reg<u>es</u></td></tr>
+          <tr style="--case-color:var(--abl);"><th>Abl.</th><td>reg<u>e</u></td><td>reg<u>ibus</u></td></tr>
+        </tbody>
+      </table>
+      <h3>onzijdig — nomen, nominis (de naam)</h3>
+      <p>Een klein aantal woorden uit de 3e verbuigingsgroep is onzijdig. Daarbij zijn — net als bij de 2e verbuigingsgroep — nominatief en accusatief altijd gelijk, en eindigt het meervoud op <em>-a</em> in plaats van <em>-es</em>.</p>
+      <table>
+        <thead><tr><th></th><th>Enkelvoud</th><th>Meervoud</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nom.</th><td>nomen</td><td>nomin<u>a</u></td></tr>
+          <tr style="--case-color:var(--gen);"><th>Gen.</th><td>nomin<u>is</u></td><td>nomin<u>um</u></td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dat.</th><td>nomin<u>i</u></td><td>nomin<u>ibus</u></td></tr>
+          <tr style="--case-color:var(--acc);"><th>Acc.</th><td>nomen</td><td>nomin<u>a</u></td></tr>
+          <tr style="--case-color:var(--abl);"><th>Abl.</th><td>nomin<u>e</u></td><td>nomin<u>ibus</u></td></tr>
+        </tbody>
+      </table>
+
+      <h2>Bijvoeglijke naamwoorden — bonus, bona, bonum (goed)</h2>
+      <p>Een bijvoeglijk naamwoord moet in geslacht, getal én naamval overeenkomen met het zelfstandig naamwoord waar het bij hoort. Handig: de mannelijke vorm verbuigt precies als de 2e verbuigingsgroep op <em>-us</em>, de vrouwelijke vorm als de 1e verbuigingsgroep, en de onzijdige vorm als de 2e verbuigingsgroep op <em>-um</em> — de uitgangen die je hierboven al hebt geleerd!</p>
+      <table>
+        <caption>Enkelvoud</caption>
+        <thead><tr><th></th><th>mannelijk</th><th>vrouwelijk</th><th>onzijdig</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nom.</th><td>bon<u>us</u></td><td>bon<u>a</u></td><td>bon<u>um</u></td></tr>
+          <tr style="--case-color:var(--gen);"><th>Gen.</th><td>bon<u>i</u></td><td>bon<u>ae</u></td><td>bon<u>i</u></td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dat.</th><td>bon<u>o</u></td><td>bon<u>ae</u></td><td>bon<u>o</u></td></tr>
+          <tr style="--case-color:var(--acc);"><th>Acc.</th><td>bon<u>um</u></td><td>bon<u>am</u></td><td>bon<u>um</u></td></tr>
+          <tr style="--case-color:var(--abl);"><th>Abl.</th><td>bon<u>o</u></td><td>bon<u>a</u></td><td>bon<u>o</u></td></tr>
+        </tbody>
+      </table>
+      <table>
+        <caption>Meervoud</caption>
+        <thead><tr><th></th><th>mannelijk</th><th>vrouwelijk</th><th>onzijdig</th></tr></thead>
+        <tbody>
+          <tr style="--case-color:var(--nom);"><th>Nom.</th><td>bon<u>i</u></td><td>bon<u>ae</u></td><td>bon<u>a</u></td></tr>
+          <tr style="--case-color:var(--gen);"><th>Gen.</th><td>bon<u>orum</u></td><td>bon<u>arum</u></td><td>bon<u>orum</u></td></tr>
+          <tr style="--case-color:var(--dat);"><th>Dat.</th><td>bon<u>is</u></td><td>bon<u>is</u></td><td>bon<u>is</u></td></tr>
+          <tr style="--case-color:var(--acc);"><th>Acc.</th><td>bon<u>os</u></td><td>bon<u>as</u></td><td>bon<u>a</u></td></tr>
+          <tr style="--case-color:var(--abl);"><th>Abl.</th><td>bon<u>is</u></td><td>bon<u>is</u></td><td>bon<u>is</u></td></tr>
+        </tbody>
+      </table>
+      <div class="note">Deze cursus gebruikt steeds de regelmatige hoofdvormen die je het vaakst tegenkomt. Een paar Latijnse woorden hebben in het echt kleine uitzonderingen (bijvoorbeeld bij onregelmatige meervouden) — die komen later, als de basis eenmaal stevig staat.</div>
+    </section>
+
+    <!-- ==================== OEFENEN ==================== -->
+    <section id="oefenen" class="panel">
+      <h2>Kies een woordsoort om te oefenen</h2>
+      <div class="cat-grid" id="cat-grid"></div>
+
+      <details class="wordlist" id="wordlist-wrap">
+        <summary>Bekijk de 25 woorden van deze groep</summary>
+        <div class="word-grid" id="word-grid"></div>
+      </details>
+
+      <div id="quiz-area">
+        <div class="quiz-card">
+          <div class="quiz-meta">
+            <span id="score-display">Score: 0 / 0</span>
+            <span id="streak-display">Reeks: 0</span>
+          </div>
+          <p class="quiz-question" id="question-text"></p>
+          <div class="options" id="options"></div>
+          <p class="feedback" id="feedback"></p>
+          <button class="next-btn" id="next-btn">Volgende vraag →</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Gemaakt om samen de naamvallen onder de knie te krijgen — succes!</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Tabs ---------- */
+  const tabs = document.querySelectorAll('nav.tabs button');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      tabs.forEach(b=>b.classList.remove('active'));
+      panels.forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ---------- Declension engine ---------- */
+  function decl1(stem){
+    return { nomSg:stem+'a', genSg:stem+'ae', datSg:stem+'ae', accSg:stem+'am', ablSg:stem+'a',
+             nomPl:stem+'ae', genPl:stem+'arum', datPl:stem+'is', accPl:stem+'as', ablPl:stem+'is' };
+  }
+  function decl2m(stem){
+    return { nomSg:stem+'us', genSg:stem+'i', datSg:stem+'o', accSg:stem+'um', ablSg:stem+'o',
+             nomPl:stem+'i', genPl:stem+'orum', datPl:stem+'is', accPl:stem+'os', ablPl:stem+'is' };
+  }
+  function decl2n(stem){
+    return { nomSg:stem+'um', genSg:stem+'i', datSg:stem+'o', accSg:stem+'um', ablSg:stem+'o',
+             nomPl:stem+'a', genPl:stem+'orum', datPl:stem+'is', accPl:stem+'a', ablPl:stem+'is' };
+  }
+  function decl3(nomSg, stem){
+    return { nomSg:nomSg, genSg:stem+'is', datSg:stem+'i', accSg:stem+'em', ablSg:stem+'e',
+             nomPl:stem+'es', genPl:stem+'um', datPl:stem+'ibus', accPl:stem+'es', ablPl:stem+'ibus' };
+  }
+  function decl3n(nomSg, stem){
+    return { nomSg:nomSg, genSg:stem+'is', datSg:stem+'i', accSg:nomSg, ablSg:stem+'e',
+             nomPl:stem+'a', genPl:stem+'um', datPl:stem+'ibus', accPl:stem+'a', ablPl:stem+'ibus' };
+  }
+
+  /* ---------- Word data (25 per category) ---------- */
+  const DECL1 = [
+    ['puella','meisje'],['aqua','water'],['terra','aarde, land'],['rosa','roos'],['via','weg'],
+    ['vita','leven'],['femina','vrouw'],['insula','eiland'],['silva','bos'],['mensa','tafel'],
+    ['porta','poort'],['stella','ster'],['luna','maan'],['pecunia','geld'],['patria','vaderland'],
+    ['epistula','brief'],['fabula','verhaal'],['cena','maaltijd'],['nauta','matroos (m.)'],
+    ['agricola','boer (m.)'],['poeta','dichter (m.)'],['incola','inwoner'],['ancilla','slavin'],
+    ['dea','godin'],['hora','uur']
+  ].map(([lat,nl])=>({lat,nl}));
+
+  const DECL2 = [
+    ['dominus','heer, meester','m'],['servus','slaaf','m'],['amicus','vriend','m'],['deus','god','m'],
+    ['filius','zoon','m'],['populus','volk','m'],['equus','paard','m'],['gladius','zwaard','m'],
+    ['lupus','wolf','m'],['ventus','wind','m'],['annus','jaar','m'],['hortus','tuin','m'],
+    ['campus','veld','m'],['murus','muur','m'],['ludus','spel, school','m'],['numerus','getal','m'],
+    ['oculus','oog','m'],['digitus','vinger','m'],['medicus','dokter','m'],['discipulus','leerling','m'],
+    ['templum','tempel','n'],['bellum','oorlog','n'],['donum','geschenk','n'],['verbum','woord','n'],
+    ['caelum','hemel','n']
+  ].map(([lat,nl,g])=>({lat,nl,g}));
+
+  const DECL3 = [
+    ['rex','reg','koning','m'],['lex','leg','wet','f'],['pater','patr','vader','m'],
+    ['mater','matr','moeder','f'],['frater','fratr','broer','m'],['soror','soror','zus','f'],
+    ['homo','homin','mens','m'],['miles','milit','soldaat','m'],['dux','duc','leider','m'],
+    ['pax','pac','vrede','f'],['vox','voc','stem','f'],['lux','luc','licht','f'],
+    ['virtus','virtut','moed, deugd','f'],['civitas','civitat','staat, burgerij','f'],
+    ['veritas','veritat','waarheid','f'],['legio','legion','legioen','f'],['consul','consul','consul','m'],
+    ['sol','sol','zon','m'],['amor','amor','liefde','m'],['labor','labor','werk','m'],
+    ['color','color','kleur','m'],['origo','origin','oorsprong','f'],['imperator','imperator','bevelhebber','m'],
+    ['corpus','corpor','lichaam','n'],['tempus','tempor','tijd','n']
+  ].map(([lat,stem,nl,g])=>({lat,stem,nl,g}));
+
+  const ADJ = [
+    ['bonus','goed'],['malus','slecht'],['magnus','groot'],['parvus','klein'],['longus','lang'],
+    ['altus','hoog, diep'],['novus','nieuw'],['antiquus','oud'],['latus','breed'],['clarus','beroemd, helder'],
+    ['plenus','vol'],['primus','eerste'],['secundus','tweede'],['multus','veel'],['paucus','weinig'],
+    ['verus','waar'],['falsus','vals'],['aequus','gelijk'],['rectus','recht, juist'],['sanctus','heilig'],
+    ['Romanus','Romeins'],['Graecus','Grieks'],['humanus','menselijk'],['divinus','goddelijk'],['aeternus','eeuwig']
+  ].map(([lat,nl])=>({lat,nl}));
+
+  const GENDER_LABEL = {m:'mannelijk', f:'vrouwelijk', n:'onzijdig'};
+
+  const CATEGORIES = {
+    decl1: {
+      title:'Zelfstandige naamwoorden',
+      subtitle:'1e verbuigingsgroep',
+      words: DECL1,
+      forms(w){ return decl1(w.lat.slice(0,-1)); }
+    },
+    decl2: {
+      title:'Zelfstandige naamwoorden',
+      subtitle:'2e verbuigingsgroep',
+      words: DECL2,
+      forms(w){ const stem=w.lat.slice(0,-2); return w.g==='m' ? decl2m(stem) : decl2n(stem); }
+    },
+    decl3: {
+      title:'Zelfstandige naamwoorden',
+      subtitle:'3e verbuigingsgroep',
+      words: DECL3,
+      forms(w){ return w.g==='n' ? decl3n(w.lat, w.stem) : decl3(w.lat, w.stem); }
+    },
+    adj: {
+      title:'Bijvoeglijke naamwoorden',
+      subtitle:'-us, -a, -um',
+      words: ADJ,
+      forms(w){
+        const stem = w.lat.slice(0,-2);
+        const genders = ['m','f','n'];
+        const g = genders[Math.floor(Math.random()*3)];
+        const f = g==='m' ? decl2m(stem) : g==='f' ? decl1(stem) : decl2n(stem);
+        f.gender = g;
+        return f;
+      }
+    }
+  };
+
+  const CASE_LABEL = {nom:'nominatief', gen:'genitief', dat:'datief', acc:'accusatief', abl:'ablatief'};
+  const NUM_LABEL = {Sg:'enkelvoud', Pl:'meervoud'};
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  /* ---------- Render category picker ---------- */
+  const catGrid = document.getElementById('cat-grid');
+  const wordGrid = document.getElementById('word-grid');
+  const wordlistWrap = document.getElementById('wordlist-wrap');
+  let currentCat = null;
+
+  Object.keys(CATEGORIES).forEach(key=>{
+    const cat = CATEGORIES[key];
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.dataset.cat = key;
+    btn.innerHTML = `<strong>${cat.title}</strong><span>${cat.subtitle} — 25 woorden</span>`;
+    btn.addEventListener('click', ()=>selectCategory(key));
+    catGrid.appendChild(btn);
+  });
+
+  function selectCategory(key){
+    currentCat = key;
+    document.querySelectorAll('.cat-btn').forEach(b=>b.classList.toggle('active', b.dataset.cat===key));
+    const cat = CATEGORIES[key];
+    wordGrid.innerHTML = cat.words.map(w=>`<div><b>${w.lat}</b> — ${w.nl}</div>`).join('');
+    wordlistWrap.open = false;
+    document.getElementById('quiz-area').classList.add('active');
+    score = 0; total = 0; streak = 0;
+    updateScore();
+    nextQuestion();
+  }
+
+  /* ---------- Quiz logic ---------- */
+  let score = 0, total = 0, streak = 0;
+  let current = null;
+
+  const questionText = document.getElementById('question-text');
+  const optionsEl = document.getElementById('options');
+  const feedbackEl = document.getElementById('feedback');
+  const nextBtn = document.getElementById('next-btn');
+  const scoreDisplay = document.getElementById('score-display');
+  const streakDisplay = document.getElementById('streak-display');
+
+  function updateScore(){
+    scoreDisplay.textContent = `Score: ${score} / ${total}`;
+    streakDisplay.textContent = `Reeks: ${streak}`;
+  }
+
+  function nextQuestion(){
+    const cat = CATEGORIES[currentCat];
+    const word = cat.words[Math.floor(Math.random()*cat.words.length)];
+    const forms = cat.forms(word);
+    const caseKeys = ['nom','gen','dat','acc','abl'];
+    const caseKey = caseKeys[Math.floor(Math.random()*5)];
+    const number = Math.random()<0.5 ? 'Sg' : 'Pl';
+    const formKey = caseKey+number;
+    const correct = forms[formKey];
+
+    const allValues = Array.from(new Set(Object.keys(forms)
+      .filter(k=>k!=='gender')
+      .map(k=>forms[k])));
+    const wrongPool = shuffle(allValues.filter(v=>v!==correct));
+    const options = shuffle([correct, ...wrongPool.slice(0,3)]);
+
+    current = {word, forms, caseKey, number, formKey, correct};
+
+    const genderNote = forms.gender ? ` — <em>${GENDER_LABEL[forms.gender]}</em>` : '';
+    questionText.innerHTML = `Wat is de <strong>${CASE_LABEL[caseKey]} ${NUM_LABEL[number]}</strong> van <span class="lat-word">${word.lat}</span> (${word.nl})${genderNote}?`;
+
+    optionsEl.innerHTML = '';
+    options.forEach(opt=>{
+      const b = document.createElement('button');
+      b.className = 'opt';
+      b.textContent = opt;
+      b.addEventListener('click', ()=>checkAnswer(opt, b));
+      optionsEl.appendChild(b);
+    });
+
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'feedback';
+    nextBtn.classList.remove('show');
+  }
+
+  function checkAnswer(chosen, btnEl){
+    document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+    total++;
+    if(chosen === current.correct){
+      score++; streak++;
+      btnEl.classList.add('correct');
+      feedbackEl.textContent = 'Goed zo!';
+      feedbackEl.className = 'feedback good';
+    } else {
+      streak = 0;
+      btnEl.classList.add('wrong');
+      document.querySelectorAll('.opt').forEach(b=>{
+        if(b.textContent === current.correct) b.classList.add('correct');
+      });
+      feedbackEl.textContent = `Niet helemaal — het juiste antwoord is "${current.correct}".`;
+      feedbackEl.className = 'feedback bad';
+    }
+    updateScore();
+    nextBtn.classList.add('show');
+  }
+
+  nextBtn.addEventListener('click', nextQuestion);
+
+  /* Select first category by default once the Oefenen tab is opened */
+  document.querySelector('button[data-tab="oefenen"]').addEventListener('click', ()=>{
+    if(!currentCat) selectCategory('decl1');
+  }, {once:true});
+
+})();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('service-worker.js').catch(function(){ /* offline-cache is optioneel */ });
+  });
+}
+</script>
+</body>
+</html>
