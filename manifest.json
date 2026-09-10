@@ -1,7 +1,7 @@
 {
-  "name": "Latijn — De Naamvallen",
-  "short_name": "Latijn",
-  "description": "Cursusapp om de Latijnse naamvallen te leren: uitleg, verbuigingstabellen en oefenen.",
+  "name": "Naamvallen & Werkwoorden",
+  "short_name": "Talen",
+  "description": "Cursusapp om naamvallen en werkwoordsvervoeging te oefenen in het Latijn, Duits en Frans.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
