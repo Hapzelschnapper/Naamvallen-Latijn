@@ -196,6 +196,60 @@ const LA_ADJ = [['bonus','goed'],['malus','slecht'],['magnus','groot'],['parvus'
   ['rectus','recht, juist'],['sanctus','heilig'],['Romanus','Romeins'],['Graecus','Grieks'],['humanus','menselijk'],
   ['divinus','goddelijk'],['aeternus','eeuwig']].map(([lat,nl])=>({lat,nl}));
 
+/* Small curated word set for "taal -> NL" phrase questions (short two-word combos / mini sentences) */
+const STANDAARD_LA = [
+  {lat:'vir', stem:'vir', type:'decl2m', nomOverride:'vir', nl:'de man', nlPl:'de mannen'},
+  {lat:'gladius', stem:'gladi', type:'decl2m', nl:'het zwaard', nlPl:'de zwaarden'},
+  {lat:'femina', stem:'femin', type:'decl1', nl:'de vrouw', nlPl:'de vrouwen'},
+  {lat:'servus', stem:'serv', type:'decl2m', nl:'de slaaf', nlPl:'de slaven'},
+  {lat:'rex', stem:'reg', type:'decl3', nl:'de koning', nlPl:'de koningen'},
+  {lat:'puella', stem:'puell', type:'decl1', nl:'het meisje', nlPl:'de meisjes'}
+];
+function laStandaardForms(w){
+  if(w.type==='decl1') return decl1(w.stem);
+  if(w.type==='decl3') return decl3(w.lat, w.stem);
+  const f = decl2m(w.stem);
+  if(w.nomOverride) f.nomSg = w.nomOverride;
+  return f;
+}
+function laPickStandaard(exclude){
+  let w;
+  do{ w = STANDAARD_LA[Math.floor(Math.random()*STANDAARD_LA.length)]; } while(exclude && w===exclude);
+  return w;
+}
+function laPhraseQuestion(){
+  const caseKey = ['nom','gen','dat','acc','abl'][Math.floor(Math.random()*5)];
+  if(caseKey==='gen'){
+    const w1=laPickStandaard(), w2=laPickStandaard(w1);
+    const f1=laStandaardForms(w1), f2=laStandaardForms(w2);
+    const phrase = `${f1.nomSg} ${f2.genSg}`;
+    const correct = `${w1.nl} van ${w2.nl}`;
+    const distractors = [`${w2.nl} van ${w1.nl}`, `${w1.nl} aan/voor ${w2.nl}`, `${w1.nl} door/met/in ${w2.nl}`];
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+  }
+  if(caseKey==='acc'){
+    const w1=laPickStandaard(), w2=laPickStandaard(w1);
+    const f1=laStandaardForms(w1), f2=laStandaardForms(w2);
+    const phrase = `${f1.nomSg} ${f2.accSg} videt.`;
+    const correct = `${w1.nl} ziet ${w2.nl}.`;
+    const distractors = [`${w2.nl} ziet ${w1.nl}.`, `${w1.nl} is ${w2.nl}.`, `${w2.nl} is ${w1.nl}.`];
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+  }
+  const w1 = laPickStandaard();
+  const f1 = laStandaardForms(w1);
+  const number = Math.random()<0.5 ? 'Sg' : 'Pl';
+  const nl = number==='Sg' ? w1.nl : w1.nlPl;
+  const formKey = caseKey + number;
+  const latWord = f1[formKey];
+  const templateFns = { nom:(x)=>x, dat:(x)=>'aan/voor '+x, abl:(x)=>'door/met/in '+x };
+  const correct = templateFns[caseKey](nl);
+  const otherKeys = ['nom','dat','abl'].filter(k=>k!==caseKey);
+  const w2 = laPickStandaard(w1);
+  const nl2 = number==='Sg' ? w2.nl : w2.nlPl;
+  const distractors = [templateFns[otherKeys[0]](nl), templateFns[otherKeys[1]](nl), templateFns[caseKey](nl2)];
+  return { questionHTML:`Wat betekent <span class="w">${latWord}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+}
+
 const GENDER_LABEL = {m:'mannelijk', f:'vrouwelijk', n:'onzijdig'};
 const CASE_LABEL = {nom:'nominatief', gen:'genitief', dat:'datief', acc:'accusatief', abl:'ablatief'};
 const NUM_LABEL = {Sg:'enkelvoud', Pl:'meervoud'};
@@ -274,6 +328,50 @@ const DE_NEUT = [['Haus','huis'],['Kind','kind'],['Buch','boek'],['Auto','auto']
   ['Bild','afbeelding'],['Spiel','spel'],['Fahrrad','fiets'],['Telefon','telefoon'],['Hemd','hemd'],['Meer','zee'],
   ['Dorf','dorp'],['Herz','hart'],['Gesicht','gezicht'],['Pferd','paard'],['Feuer','vuur'],['Blatt','blad'],
   ['Glas','glas']].map(([de,nl])=>({de,nl,g:'n'}));
+
+/* Small curated word set for "taal -> NL" phrase questions */
+const STANDAARD_DE = [
+  {de:'Mann', g:'m', nl:'de man', genSuffix:'es'},
+  {de:'Schwert', g:'n', nl:'het zwaard', genSuffix:'es'},
+  {de:'Frau', g:'f', nl:'de vrouw', genSuffix:''},
+  {de:'König', g:'m', nl:'de koning', genSuffix:'s'},
+  {de:'Kind', g:'n', nl:'het kind', genSuffix:'es'}
+];
+function dePickStandaard(exclude){
+  let w;
+  do{ w = STANDAARD_DE[Math.floor(Math.random()*STANDAARD_DE.length)]; } while(exclude && w===exclude);
+  return w;
+}
+function dePhraseFor(w, caseKey){
+  const art = deArtForms(w.g)[caseKey+'Sg'];
+  const noun = caseKey==='gen' ? w.de + w.genSuffix : w.de;
+  return `${art} ${noun}`;
+}
+function dePhraseQuestion(){
+  const caseKey = ['nom','gen','dat','acc'][Math.floor(Math.random()*4)];
+  if(caseKey==='gen'){
+    const w1=dePickStandaard(), w2=dePickStandaard(w1);
+    const phrase = `${dePhraseFor(w1,'nom')} ${dePhraseFor(w2,'gen')}`;
+    const correct = `${w1.nl} van ${w2.nl}`;
+    const distractors = [`${w2.nl} van ${w1.nl}`, `${w1.nl} aan/voor ${w2.nl}`, `${w1.nl} en ${w2.nl}`];
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+  }
+  if(caseKey==='acc'){
+    const w1=dePickStandaard(), w2=dePickStandaard(w1);
+    const phrase = `${dePhraseFor(w1,'nom')} sieht ${dePhraseFor(w2,'acc')}.`;
+    const correct = `${w1.nl} ziet ${w2.nl}.`;
+    const distractors = [`${w2.nl} ziet ${w1.nl}.`, `${w1.nl} is ${w2.nl}.`, `${w2.nl} is ${w1.nl}.`];
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+  }
+  const w1 = dePickStandaard();
+  const phrase = dePhraseFor(w1, caseKey);
+  const templateFns = { nom:(x)=>x, dat:(x)=>'aan/voor '+x };
+  const otherKey = caseKey==='nom' ? 'dat' : 'nom';
+  const correct = templateFns[caseKey](w1.nl);
+  const w2 = dePickStandaard(w1);
+  const distractors = [templateFns[otherKey](w1.nl), templateFns[caseKey](w2.nl), templateFns[otherKey](w2.nl)];
+  return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+}
 
 /* ================= GERMAN: VERB ENGINE ================= */
 function dePresentForms(stem, needsE){
@@ -445,9 +543,9 @@ function laNounLeren(){
 
 function laNounOefenen(){
   const cats = {
-    decl1: { title:'1e verbuigingsgroep', sub:'femina-type', words: LA_DECL1, forms:(w)=>decl1(w.lat.slice(0,-1)) },
-    decl2: { title:'2e verbuigingsgroep', sub:'servus / donum', words: LA_DECL2, forms:(w)=>{ const s=w.lat.slice(0,-2); return w.g==='m'?decl2m(s):decl2n(s); } },
-    decl3: { title:'3e verbuigingsgroep', sub:'rex / nomen', words: LA_DECL3, forms:(w)=> w.g==='n' ? decl3n(w.lat,w.stem) : decl3(w.lat,w.stem) },
+    decl1: { title:'1e verbuigingsgroep', sub:'femina-type', words: LA_DECL1, forms:(w)=>decl1(w.lat.slice(0,-1)), vertaalFn: laPhraseQuestion },
+    decl2: { title:'2e verbuigingsgroep', sub:'servus / donum', words: LA_DECL2, forms:(w)=>{ const s=w.lat.slice(0,-2); return w.g==='m'?decl2m(s):decl2n(s); }, vertaalFn: laPhraseQuestion },
+    decl3: { title:'3e verbuigingsgroep', sub:'rex / nomen', words: LA_DECL3, forms:(w)=> w.g==='n' ? decl3n(w.lat,w.stem) : decl3(w.lat,w.stem), vertaalFn: laPhraseQuestion },
     adj: { title:'Bijvoeglijke naamwoorden', sub:'-us, -a, -um', words: LA_ADJ, forms:(w)=>{
       const stem=w.lat.slice(0,-2); const g=['m','f','n'][Math.floor(Math.random()*3)];
       const f = g==='m'?decl2m(stem):g==='f'?decl1(stem):decl2n(stem); f.gender=g; return f;
@@ -539,9 +637,9 @@ function deNounLeren(){
 }
 function deNounOefenen(){
   const cats = {
-    masc: { title:'der-woorden', sub:'mannelijk', words: DE_MASC, forms:()=>deArtForms('m') },
-    fem: { title:'die-woorden', sub:'vrouwelijk', words: DE_FEM, forms:()=>deArtForms('f') },
-    neut: { title:'das-woorden', sub:'onzijdig', words: DE_NEUT, forms:()=>deArtForms('n') }
+    masc: { title:'der-woorden', sub:'mannelijk', words: DE_MASC, forms:()=>deArtForms('m'), vertaalFn: dePhraseQuestion },
+    fem: { title:'die-woorden', sub:'vrouwelijk', words: DE_FEM, forms:()=>deArtForms('f'), vertaalFn: dePhraseQuestion },
+    neut: { title:'das-woorden', sub:'onzijdig', words: DE_NEUT, forms:()=>deArtForms('n'), vertaalFn: dePhraseQuestion }
   };
   return renderOefenCategoryPicker(cats, (word, formKey)=>{
     const caseKey = formKey.slice(0,3); const number = formKey.slice(3);
@@ -769,6 +867,9 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
 
   function buildVertaalQuestion(){
     const cat = cats[catKey];
+    if(cat.vertaalFn){
+      return Object.assign({type:'vertaal'}, cat.vertaalFn());
+    }
     const word = pickWord();
     const lemma = lemmaFn(word);
     const correct = word.nl;
