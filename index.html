@@ -127,7 +127,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.14</div>
+<div class="version-badge">v1.18</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -2156,56 +2156,44 @@ function deVocabOefenen(){
 }
 
 /* ================= GENERIC OEFENEN ENGINE ================= */
+// Turns "Wie alt ist deine Mutter / dein Vater?" into the two full, valid
+// sentences ["Wie alt ist deine Mutter?", "Wie alt ist dein Vater?"] instead
+// of naively chopping the string in half at "/" (which would wrongly split
+// off a bare sentence fragment like "dein Vater?" as if it were a complete
+// answer on its own). When there's no shared context to preserve — e.g.
+// "oft / häufig" — it just returns the two standalone words/phrases.
+function splitAlternatives(s){
+  if(!s.includes('/')) return [s];
+  const bits = s.split('/');
+  if(bits.length !== 2) return [s];
+  const left = bits[0].trim(), right = bits[1].trim();
+  if(!left || !right) return [s];
+  const leftWords = left.split(/\s+/);
+  const rightWords = right.split(/\s+/);
+  const lastRight = rightWords[rightWords.length-1];
+  const m = lastRight.match(/^(.*?)([?.!,;:]*)$/);
+  const rightCoreWords = rightWords.slice(0,-1).concat(m[1] ? [m[1]] : []);
+  const suffix = m[2] || '';
+  const n = rightCoreWords.length;
+  if(n===0 || leftWords.length <= n) return [left, right];
+  const altLeft = leftWords.slice(leftWords.length-n);
+  const prefixWords = leftWords.slice(0, leftWords.length-n);
+  return [
+    [...prefixWords, ...altLeft].join(' ') + suffix,
+    [...prefixWords, ...rightCoreWords].join(' ') + suffix
+  ];
+}
 function normalizeNl(nl){
-  return nl.replace(/\([^)]*\)/g,'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  // Split on comma (synonyms: "veelkleurig, bont"), then split each part
+  // on slash via splitAlternatives (either/or alternatives, sentence-aware).
+  const cleaned = nl.replace(/\([^)]*\)/g,'');
+  const out = [];
+  cleaned.split(',').map(s=>s.trim()).filter(Boolean).forEach(part=>{
+    splitAlternatives(part).forEach(v=>{ if(v) out.push(v.trim().toLowerCase()); });
+  });
+  return out;
 }
 function normAnswer(s){ return s.trim().toLowerCase(); }
-
-function levenshtein(a, b){
-  // Damerau-Levenshtein (optimal string alignment): also counts an adjacent
-  // letter swap ("servsi") as a single edit, which is a very common typo.
-  const m=a.length, n=b.length;
-  const d = Array.from({length:m+1}, ()=>new Array(n+1).fill(0));
-  for(let i=0;i<=m;i++) d[i][0]=i;
-  for(let j=0;j<=n;j++) d[0][j]=j;
-  for(let i=1;i<=m;i++){
-    for(let j=1;j<=n;j++){
-      const cost = a[i-1]===b[j-1] ? 0 : 1;
-      d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+cost);
-      if(i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1]){
-        d[i][j] = Math.min(d[i][j], d[i-2][j-2]+cost);
-      }
-    }
-  }
-  return d[m][n];
-}
-// How many character edits (typos) we forgive, scaled to answer length.
-// Short answers (<=3 chars) get zero tolerance, since a 1-letter difference
-// there is usually a genuinely different correct form, not a typo.
-function typoThreshold(len){
-  if(len<=3) return 0;
-  if(len<=6) return 1;
-  if(len<=12) return 2;
-  return Math.min(4, Math.ceil(len*0.12));
-}
-function fuzzyMatchOne(input, correctStr){
-  const a = normAnswer(input), b = normAnswer(correctStr);
-  if(a===b) return {ok:true, typo:false};
-  const th = typoThreshold(Math.max(a.length, b.length));
-  const dist = th>0 ? levenshtein(a,b) : Infinity;
-  return { ok: th>0 && dist<=th, typo: th>0 && dist<=th };
-}
-function fuzzyMatchAny(input, alternatives){
-  for(const alt of alternatives){
-    const r = fuzzyMatchOne(input, alt);
-    if(r.ok && !r.typo) return r;
-  }
-  for(const alt of alternatives){
-    const r = fuzzyMatchOne(input, alt);
-    if(r.ok) return r;
-  }
-  return {ok:false, typo:false};
-}
 
 function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm){
   const wrapId = 'oefen-' + Math.random().toString(36).slice(2,8);
@@ -2370,7 +2358,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
         questionHTML: `Wat betekent <span class="w">${lemmaFn(word)}</span>?`,
         correct,
         mcOptions: shuffle([correct, ...wrongPool.slice(0,3)]),
-        accept: (v)=> fuzzyMatchAny(v, normalizeNl(correct)),
+        accept: (v)=> ({ ok: normalizeNl(correct).includes(normAnswer(v)), typo:false }),
         altLookup
       };
     }
@@ -2382,7 +2370,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
       questionHTML: `Wat is het woord voor <span class="w">${word.nl}</span>?`,
       correct,
       mcOptions: shuffle([correct, ...wrongPool.slice(0,3)]),
-      accept: (v)=> fuzzyMatchOne(v, correct),
+      accept: (v)=> ({ ok: splitAlternatives(correct).some(alt=>normAnswer(alt)===normAnswer(v)), typo:false }),
       altLookup
     };
   }
@@ -2459,21 +2447,17 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
 
   function checkAnswer(chosen, btnEl){
     total++;
-    let isCorrect=false, isTypo=false, altMsg=null;
+    let isCorrect=false, altMsg=null;
     if(current.answerMode==='mc'){
       isCorrect = (chosen===current.correct);
     } else {
       const normChosen = normAnswer(chosen);
       const knownAlt = current.altLookup && current.altLookup[normChosen];
-      const fuzzy = current.accept(chosen);
-      if(fuzzy.ok && !fuzzy.typo){
+      const match = current.accept(chosen);
+      if(match.ok){
         isCorrect = true;
       } else if(knownAlt){
-        // Exactly matches a DIFFERENT known-valid answer (e.g. another case/word) —
-        // that's a mix-up, not a typo, even if it's textually close to the correct one.
         isCorrect = false; altMsg = knownAlt;
-      } else if(fuzzy.ok){
-        isCorrect = true; isTypo = true;
       } else {
         isCorrect = false;
       }
@@ -2499,11 +2483,11 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
 
     if(credit==='full'){
       score++; streak++;
-      feedbackEl.textContent = isTypo ? `Goed! (kleine typefout — correct: "${current.correct}")` : 'Goed zo!';
+      feedbackEl.textContent = 'Goed zo!';
       feedbackEl.className='feedback good';
     } else if(credit==='half'){
       score += 0.5; streak=0;
-      feedbackEl.textContent = isTypo ? `Half goed — hint gebruikt, en let op de spelling: "${current.correct}".` : 'Half goed — je gebruikte een hint.';
+      feedbackEl.textContent = 'Half goed — je gebruikte een hint.';
       feedbackEl.className='feedback good';
     } else if(reason==='toomanyhints'){
       streak=0;
