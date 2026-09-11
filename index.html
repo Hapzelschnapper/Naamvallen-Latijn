@@ -104,6 +104,8 @@
   .quiz-meta{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-faint);margin-bottom:12px;}
   .quiz-question{font-size:1.1rem;color:var(--ink);margin-bottom:4px;}
   .quiz-question .w{font-style:italic;color:var(--gold);}
+  .quiz-question .w.hintable{cursor:pointer;border-bottom:1px dotted var(--gold);}
+  .hint-text{font-family:'Nunito',sans-serif;letter-spacing:1px;color:var(--ink-faint);font-size:.9rem;min-height:1.2em;margin:2px 0 0;}
   .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
   @media (max-width:480px){.options{grid-template-columns:1fr;}}
   .opt{font-family:'Nunito',sans-serif;font-size:.98rem;font-weight:700;background:var(--card-2);border:1px solid rgba(217,164,65,0.3);color:var(--ink);border-radius:var(--radius);padding:11px;cursor:pointer;}
@@ -224,16 +226,24 @@ function laPhraseQuestion(){
     const f1=laStandaardForms(w1), f2=laStandaardForms(w2);
     const phrase = `${f1.nomSg} ${f2.genSg}`;
     const correct = `${w1.nl} van ${w2.nl}`;
-    const distractors = [`${w2.nl} van ${w1.nl}`, `${w1.nl} aan/voor ${w2.nl}`, `${w1.nl} door/met/in ${w2.nl}`];
-    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+    const d0 = `${w2.nl} van ${w1.nl}`, d1 = `${w1.nl} aan/voor ${w2.nl}`, d2 = `${w1.nl} door/met/in ${w2.nl}`;
+    const altLookup = {};
+    altLookup[normAnswer(d0)] = `dat zou "${f2.nomSg} ${f1.genSg}" betekenen (bezit omgekeerd)`;
+    altLookup[normAnswer(d1)] = `dat is de datief-lezing van "${f2.datSg}", niet de genitief van "${f2.genSg}"`;
+    altLookup[normAnswer(d2)] = `dat is de ablatief-lezing van "${f2.ablSg}", niet de genitief van "${f2.genSg}"`;
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,d0,d1,d2]), accept:(v)=>normAnswer(v)===normAnswer(correct), altLookup };
   }
   if(caseKey==='acc'){
     const w1=laPickStandaard(), w2=laPickStandaard(w1);
     const f1=laStandaardForms(w1), f2=laStandaardForms(w2);
     const phrase = `${f1.nomSg} ${f2.accSg} videt.`;
     const correct = `${w1.nl} ziet ${w2.nl}.`;
-    const distractors = [`${w2.nl} ziet ${w1.nl}.`, `${w1.nl} is ${w2.nl}.`, `${w2.nl} is ${w1.nl}.`];
-    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+    const d0 = `${w2.nl} ziet ${w1.nl}.`, d1 = `${w1.nl} is ${w2.nl}.`, d2 = `${w2.nl} is ${w1.nl}.`;
+    const altLookup = {};
+    altLookup[normAnswer(d0)] = `dat zou "${f2.nomSg} ${f1.accSg} videt." betekenen (onderwerp en lijdend voorwerp omgekeerd)`;
+    altLookup[normAnswer(d1)] = `"videt" betekent "ziet", niet "is"`;
+    altLookup[normAnswer(d2)] = `"videt" betekent "ziet", niet "is", en het onderwerp/voorwerp staan omgekeerd`;
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,d0,d1,d2]), accept:(v)=>normAnswer(v)===normAnswer(correct), altLookup };
   }
   const w1 = laPickStandaard();
   const f1 = laStandaardForms(w1);
@@ -247,7 +257,12 @@ function laPhraseQuestion(){
   const w2 = laPickStandaard(w1);
   const nl2 = number==='Sg' ? w2.nl : w2.nlPl;
   const distractors = [templateFns[otherKeys[0]](nl), templateFns[otherKeys[1]](nl), templateFns[caseKey](nl2)];
-  return { questionHTML:`Wat betekent <span class="w">${latWord}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+  const altLookup = {};
+  altLookup[normAnswer(distractors[0])] = `dat is de ${CASE_LABEL[otherKeys[0]]}-lezing, niet de ${CASE_LABEL[caseKey]}`;
+  altLookup[normAnswer(distractors[1])] = `dat is de ${CASE_LABEL[otherKeys[1]]}-lezing, niet de ${CASE_LABEL[caseKey]}`;
+  altLookup[normAnswer(distractors[2])] = `dat is de betekenis van "${w2.lat}" (een ander woord), niet van "${latWord}"`;
+
+  return { questionHTML:`Wat betekent <span class="w">${latWord}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct), altLookup };
 }
 
 const GENDER_LABEL = {m:'mannelijk', f:'vrouwelijk', n:'onzijdig'};
@@ -353,15 +368,23 @@ function dePhraseQuestion(){
     const w1=dePickStandaard(), w2=dePickStandaard(w1);
     const phrase = `${dePhraseFor(w1,'nom')} ${dePhraseFor(w2,'gen')}`;
     const correct = `${w1.nl} van ${w2.nl}`;
-    const distractors = [`${w2.nl} van ${w1.nl}`, `${w1.nl} aan/voor ${w2.nl}`, `${w1.nl} en ${w2.nl}`];
-    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+    const d0 = `${w2.nl} van ${w1.nl}`, d1 = `${w1.nl} aan/voor ${w2.nl}`, d2 = `${w1.nl} en ${w2.nl}`;
+    const altLookup = {};
+    altLookup[normAnswer(d0)] = `dat zou "${dePhraseFor(w2,'nom')} ${dePhraseFor(w1,'gen')}" betekenen (bezit omgekeerd)`;
+    altLookup[normAnswer(d1)] = `dat is de datief-lezing van "${dePhraseFor(w2,'dat')}", niet de genitief van "${dePhraseFor(w2,'gen')}"`;
+    altLookup[normAnswer(d2)] = `er staat geen "en" of los rijtje, maar een bezitsrelatie ("van")`;
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,d0,d1,d2]), accept:(v)=>normAnswer(v)===normAnswer(correct), altLookup };
   }
   if(caseKey==='acc'){
     const w1=dePickStandaard(), w2=dePickStandaard(w1);
     const phrase = `${dePhraseFor(w1,'nom')} sieht ${dePhraseFor(w2,'acc')}.`;
     const correct = `${w1.nl} ziet ${w2.nl}.`;
-    const distractors = [`${w2.nl} ziet ${w1.nl}.`, `${w1.nl} is ${w2.nl}.`, `${w2.nl} is ${w1.nl}.`];
-    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+    const d0 = `${w2.nl} ziet ${w1.nl}.`, d1 = `${w1.nl} is ${w2.nl}.`, d2 = `${w2.nl} is ${w1.nl}.`;
+    const altLookup = {};
+    altLookup[normAnswer(d0)] = `dat zou "${dePhraseFor(w2,'nom')} sieht ${dePhraseFor(w1,'acc')}." betekenen (onderwerp en lijdend voorwerp omgekeerd)`;
+    altLookup[normAnswer(d1)] = `"sieht" betekent "ziet", niet "is"`;
+    altLookup[normAnswer(d2)] = `"sieht" betekent "ziet", niet "is", en onderwerp/voorwerp staan omgekeerd`;
+    return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,d0,d1,d2]), accept:(v)=>normAnswer(v)===normAnswer(correct), altLookup };
   }
   const w1 = dePickStandaard();
   const phrase = dePhraseFor(w1, caseKey);
@@ -370,7 +393,11 @@ function dePhraseQuestion(){
   const correct = templateFns[caseKey](w1.nl);
   const w2 = dePickStandaard(w1);
   const distractors = [templateFns[otherKey](w1.nl), templateFns[caseKey](w2.nl), templateFns[otherKey](w2.nl)];
-  return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct) };
+  const altLookup = {};
+  altLookup[normAnswer(distractors[0])] = `dat is de ${DE_CASE_LABEL[otherKey]}-lezing, niet de ${DE_CASE_LABEL[caseKey]}`;
+  altLookup[normAnswer(distractors[1])] = `dat is de betekenis van "${dePhraseFor(w2,caseKey)}" (een ander woord), niet van "${phrase}"`;
+  altLookup[normAnswer(distractors[2])] = `dat is zowel een ander woord als de verkeerde naamval`;
+  return { questionHTML:`Wat betekent <span class="w">${phrase}</span>?`, correct, mcOptions:shuffle([correct,...distractors]), accept:(v)=>normAnswer(v)===normAnswer(correct), altLookup };
 }
 
 /* ================= GERMAN: VERB ENGINE ================= */
@@ -555,7 +582,10 @@ function laNounOefenen(){
     const caseKey = formKey.slice(0,3); const number = formKey.slice(3);
     const genderNote = forms.gender ? ` — <em>${GENDER_LABEL[forms.gender]}</em>` : '';
     return `Wat is de <strong>${CASE_LABEL[caseKey]} ${NUM_LABEL[number]}</strong> van <span class="w">${word.lat}</span> (${word.nl})${genderNote}?`;
-  }, (w)=>w.lat);
+  }, (w)=>w.lat, (word, formKey)=>{
+    const caseKey = formKey.slice(0,3); const number = formKey.slice(3);
+    return `${CASE_LABEL[caseKey]} ${NUM_LABEL[number]}`;
+  });
 }
 
 /* ================= CONTENT: LATIN VERBS ================= */
@@ -590,7 +620,10 @@ function laVerbOefenen(){
   return renderOefenCategoryPicker(cats, (word, formKey)=>{
     const tense = formKey.slice(0,-1); const person = +formKey.slice(-1);
     return `Wat is de vorm van <span class="w">${word.lat}</span> (${word.nl}) in de <strong>${TENSE_LABEL_LA[tense]}</strong> voor <strong>${PERSON_LABEL_LA[person]}</strong>?`;
-  }, (w)=>w.lat);
+  }, (w)=>w.lat, (word, formKey)=>{
+    const tense = formKey.slice(0,-1); const person = +formKey.slice(-1);
+    return `${TENSE_LABEL_LA[tense]} voor ${PERSON_LABEL_LA[person]}`;
+  });
 }
 
 /* ================= CONTENT: GERMAN NOUNS ================= */
@@ -644,7 +677,10 @@ function deNounOefenen(){
   return renderOefenCategoryPicker(cats, (word, formKey)=>{
     const caseKey = formKey.slice(0,3); const number = formKey.slice(3);
     return `Wat is het juiste lidwoord in de <strong>${DE_CASE_LABEL[caseKey]} ${number==='Sg'?'enkelvoud':'meervoud'}</strong> bij <span class="w">${word.de}</span> (${word.nl}, ${GENDER_LABEL[word.g]})?`;
-  }, (w)=>w.de);
+  }, (w)=>w.de, (word, formKey)=>{
+    const caseKey = formKey.slice(0,3); const number = formKey.slice(3);
+    return `${DE_CASE_LABEL[caseKey]} ${number==='Sg'?'enkelvoud':'meervoud'}`;
+  });
 }
 
 /* ================= CONTENT: GERMAN VERBS ================= */
@@ -694,7 +730,11 @@ function deVerbOefenen(){
     const tense = formKey.slice(0,4); const person = +formKey.slice(4);
     const tenseLabel = tense==='pres' ? 'Präsens' : 'Perfekt';
     return `Wat is de vorm van <span class="w">${word.de}</span> (${word.nl}) in het <strong>${tenseLabel}</strong> voor <strong>${PERSON_LABEL_DE[person]}</strong>?`;
-  }, (w)=>w.de);
+  }, (w)=>w.de, (word, formKey)=>{
+    const tense = formKey.slice(0,4); const person = +formKey.slice(4);
+    const tenseLabel = tense==='pres' ? 'Präsens' : 'Perfekt';
+    return `${tenseLabel} voor ${PERSON_LABEL_DE[person]}`;
+  });
 }
 
 /* ================= CONTENT: FRENCH NOUNS (explanation only) ================= */
@@ -739,7 +779,11 @@ function frVerbOefenen(){
     const tense = formKey.slice(0,4)==='pres' ? 'pres' : 'pc'; const person = +formKey.slice(tense.length);
     const tenseLabel = tense==='pres' ? 'présent' : 'passé composé';
     return `Wat is de vorm van <span class="w">${word.fr}</span> (${word.nl}) in het <strong>${tenseLabel}</strong> voor <strong>${PERSON_LABEL_FR[person]}</strong>?`;
-  }, (w)=>w.fr);
+  }, (w)=>w.fr, (word, formKey)=>{
+    const tense = formKey.slice(0,4)==='pres' ? 'pres' : 'pc'; const person = +formKey.slice(tense.length);
+    const tenseLabel = tense==='pres' ? 'présent' : 'passé composé';
+    return `${tenseLabel} voor ${PERSON_LABEL_FR[person]}`;
+  });
 }
 
 /* ================= VOCAB PLACEHOLDER ================= */
@@ -753,9 +797,9 @@ function normalizeNl(nl){
 }
 function normAnswer(s){ return s.trim().toLowerCase(); }
 
-function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn){
+function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm){
   const wrapId = 'oefen-' + Math.random().toString(36).slice(2,8);
-  setTimeout(()=>initOefenen(wrapId, cats, questionTemplate, lemmaFn), 0);
+  setTimeout(()=>initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm), 0);
   return `<div id="${wrapId}">
     <h2>Kies een categorie</h2>
     <div class="cat-grid" data-role="cat-grid"></div>
@@ -773,6 +817,7 @@ function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn){
       <div class="quiz-card">
         <div class="quiz-meta"><span data-role="score-display">Score: 0 / 0</span><span data-role="streak-display">Reeks: 0</span></div>
         <p class="quiz-question" data-role="question-text"></p>
+        <p class="hint-text" data-role="hint-text"></p>
         <div class="options" data-role="options"></div>
         <div class="input-row" data-role="input-row" style="display:none;">
           <input type="text" class="text-input" data-role="text-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Typ je antwoord...">
@@ -785,7 +830,7 @@ function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn){
   </div>`;
 }
 
-function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
+function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
   const root = document.getElementById(wrapId);
   if(!root) return;
   const catGrid = root.querySelector('[data-role="cat-grid"]');
@@ -794,6 +839,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
   const dirToggle = root.querySelector('[data-role="dir-toggle"]');
   const quizArea = root.querySelector('[data-role="quiz-area"]');
   const questionText = root.querySelector('[data-role="question-text"]');
+  const hintText = root.querySelector('[data-role="hint-text"]');
   const optionsEl = root.querySelector('[data-role="options"]');
   const inputRow = root.querySelector('[data-role="input-row"]');
   const textInput = root.querySelector('[data-role="text-input"]');
@@ -805,7 +851,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
 
   let catKey = null;
   let direction = 'nl2target';
-  let score=0,total=0,streak=0,current=null;
+  let score=0,total=0,streak=0,current=null,hintTaps=0;
 
   Object.keys(cats).forEach(key=>{
     const cat = cats[key];
@@ -838,7 +884,8 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
   }
 
   function updateScore(){
-    scoreDisplay.textContent = `Score: ${score} / ${total}`;
+    const scoreDisp = Number.isInteger(score) ? score : score.toFixed(1);
+    scoreDisplay.textContent = `Score: ${scoreDisp} / ${total}`;
     streakDisplay.textContent = `Reeks: ${streak}`;
   }
 
@@ -856,12 +903,22 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
     const correct = forms[formKey];
     const allValues = Array.from(new Set(formKeys.map(k=>forms[k])));
     const wrongPool = shuffle(allValues.filter(v=>v!==correct));
+    const altLookup = {};
+    if(describeForm){
+      formKeys.forEach(k=>{
+        if(k===formKey) return;
+        const val = forms[k];
+        if(normAnswer(val)===normAnswer(correct)) return;
+        altLookup[normAnswer(val)] = `"${val}" is de ${describeForm(word,k,forms)}`;
+      });
+    }
     return {
       type:'vorm',
       questionHTML: questionTemplate(word, formKey, forms),
       correct,
       mcOptions: shuffle([correct, ...wrongPool.slice(0,3)]),
-      accept: (val)=> normAnswer(val)===normAnswer(correct)
+      accept: (val)=> normAnswer(val)===normAnswer(correct),
+      altLookup
     };
   }
 
@@ -875,12 +932,17 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
     const correct = word.nl;
     const others = cat.words.filter(w=>w!==word);
     const wrongPool = shuffle(others.map(w=>w.nl));
+    const altLookup = {};
+    others.forEach(w2=>{
+      normalizeNl(w2.nl).forEach(m=>{ altLookup[m] = `"${lemmaFn(w2)}" betekent "${w2.nl}"`; });
+    });
     return {
       type:'vertaal',
       questionHTML: `Wat betekent <span class="w">${lemma}</span>?`,
       correct,
       mcOptions: shuffle([correct, ...wrongPool.slice(0,3)]),
-      accept: (val)=> normalizeNl(correct).includes(normAnswer(val))
+      accept: (val)=> normalizeNl(correct).includes(normAnswer(val)),
+      altLookup
     };
   }
 
@@ -892,12 +954,21 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
 
     current = type==='vorm' ? buildVormQuestion() : buildVertaalQuestion();
     current.answerMode = Math.random()<(1/3) ? 'mc' : 'input';
+    hintTaps = 0;
 
     questionText.innerHTML = current.questionHTML;
+    hintText.textContent = '';
     feedbackEl.textContent=''; feedbackEl.className='feedback';
     nextBtn.classList.remove('show');
     textInput.value=''; textInput.disabled=false;
     checkBtn.disabled=false;
+
+    const wEl = questionText.querySelector('.w');
+    if(wEl){
+      wEl.classList.add('hintable');
+      wEl.title = 'Tik voor een hint';
+      wEl.addEventListener('click', onHintTap);
+    }
 
     if(current.answerMode==='mc'){
       inputRow.style.display='none';
@@ -915,6 +986,20 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
       inputRow.style.display='flex';
       setTimeout(()=>textInput.focus(), 0);
     }
+  }
+
+  function onHintTap(){
+    hintTaps++;
+    let shown=0, out='';
+    for(const ch of current.correct){
+      if(/[a-zA-ZÀ-ÿ]/.test(ch)){
+        shown++;
+        out += shown<=hintTaps ? ch : '_';
+      } else {
+        out += ch;
+      }
+    }
+    hintText.textContent = 'Hint: ' + out;
   }
 
   function submitInput(){
@@ -936,12 +1021,34 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn){
     } else {
       textInput.disabled=true; checkBtn.disabled=true;
     }
+
+    let credit, reason;
     if(isCorrect){
+      if(hintTaps===0) credit='full';
+      else if(hintTaps===1) credit='half';
+      else { credit='none'; reason='toomanyhints'; }
+    } else {
+      credit='none'; reason='wrong';
+    }
+
+    if(credit==='full'){
       score++; streak++;
       feedbackEl.textContent='Goed zo!'; feedbackEl.className='feedback good';
+    } else if(credit==='half'){
+      score += 0.5; streak=0;
+      feedbackEl.textContent='Half goed — je gebruikte een hint.'; feedbackEl.className='feedback good';
+    } else if(reason==='toomanyhints'){
+      streak=0;
+      feedbackEl.textContent=`Dat klopt, maar met zoveel hints telt het niet mee. Het antwoord was "${current.correct}".`;
+      feedbackEl.className='feedback bad';
     } else {
       streak=0;
-      feedbackEl.textContent=`Niet helemaal — het juiste antwoord is "${current.correct}".`;
+      let msg = `Niet helemaal — het juiste antwoord is "${current.correct}".`;
+      if(current.answerMode==='input' && current.altLookup){
+        const alt = current.altLookup[normAnswer(chosen)];
+        if(alt) msg = `Fout — ${alt}, juist is: "${current.correct}".`;
+      }
+      feedbackEl.textContent = msg;
       feedbackEl.className='feedback bad';
     }
     updateScore();
