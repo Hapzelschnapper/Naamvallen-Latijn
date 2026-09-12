@@ -66,6 +66,8 @@
   .ex .nl{color:var(--ink-faint);font-size:.88rem;}
 
   table{width:100%;border-collapse:collapse;margin:10px 0 20px;font-size:.92rem;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;}
+  .table-scroll table{margin:10px 2px 20px;}
   caption{text-align:left;color:var(--ink-dim);font-size:.82rem;margin-bottom:6px;font-style:italic;}
   th,td{padding:7px 9px;text-align:left;border-bottom:1px solid rgba(217,164,65,0.15);}
   thead th{font-family:'Cinzel',serif;font-weight:600;color:var(--ink);font-size:.82rem;border-bottom:1px solid var(--gold-dim);}
@@ -127,11 +129,11 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.21</div>
+<div class="version-badge">v1.23</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
-    <p class="subtitle">Grammatica oefenen in het Latijn, Duits en Frans</p>
+    <p class="subtitle">Grammatica oefenen in het Latijn, Duits en Frans — en het Griekse alfabet</p>
     <nav class="pillnav" id="lang-nav"></nav>
     <nav class="pillnav sub" id="topic-nav"></nav>
     <nav class="pillnav sub2" id="view-nav"></nav>
@@ -148,7 +150,7 @@
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
 function tableHTML(colHeaders, rowHeaders, cellFn, caption){
-  let html = '<table>';
+  let html = '<div class="table-scroll"><table>';
   if(caption) html += `<caption>${caption}</caption>`;
   html += `<thead><tr><th></th>${colHeaders.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
   rowHeaders.forEach((rh,ri)=>{
@@ -156,7 +158,7 @@ function tableHTML(colHeaders, rowHeaders, cellFn, caption){
     colHeaders.forEach((c,ci)=>{ html += `<td>${cellFn(ri,ci)}</td>`; });
     html += '</tr>';
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   return html;
 }
 
@@ -3835,13 +3837,43 @@ const FR_RE = [['vend','verkopen'],['attend','wachten'],['entend','horen'],['per
   ['suspend','ophangen, schorsen'],['répond','antwoorden'],['prétend','beweren'],['pond','leggen (eieren)'],
   ['pend','hangen'],['tend','spannen, aanbieden'],['fend','splijten']].map(([stem,nl])=>({stem,nl,fr:stem+'re'}));
 
+/* ================= GREEK: ALFABET DATA ================= */
+const EL_ALFABET = [
+  {"order": 1, "upper": "Α", "lower": "α", "name": "alfa", "translit": "a", "sound": "a (zoals in 'tak')", "ex": "ἄγγελος", "exNl": "bode", "confusable": [], "looksLike": "", "note": ""},
+  {"order": 2, "upper": "Β", "lower": "β", "name": "beta", "translit": "b", "sound": "b", "ex": "βασίλεια", "exNl": "koningin", "confusable": [], "looksLike": "B (klinkt ook als 'b', geen valse vriend)", "note": ""},
+  {"order": 3, "upper": "Γ", "lower": "γ", "name": "gamma", "translit": "g", "sound": "g (hard, zoals in 'goal'; vóór γ/κ/χ/ξ klinkt het als 'ng')", "ex": "γαμέω", "exNl": "trouwen (met)", "confusable": ["Π", "π"], "looksLike": "", "note": ""},
+  {"order": 4, "upper": "Δ", "lower": "δ", "name": "delta", "translit": "d", "sound": "d", "ex": "δῆλος", "exNl": "duidelijk", "confusable": ["Λ", "λ"], "looksLike": "", "note": ""},
+  {"order": 5, "upper": "Ε", "lower": "ε", "name": "epsilon", "translit": "e", "sound": "korte e (zoals in 'bed')", "ex": "ἐλευθερία", "exNl": "vrijheid", "confusable": ["Η", "η"], "looksLike": "", "note": "Let op: epsilon is een KORTE e, eta (letter 7) is een LANGE e - qua vorm niet verwarrend, maar qua betekenis/klank vaak door elkaar gehaald."},
+  {"order": 6, "upper": "Ζ", "lower": "ζ", "name": "zeta", "translit": "z", "sound": "dz (zoals 'ds' in 'kids')", "ex": "ζητεῖ", "exNl": "(hij) zoekt", "confusable": ["Ξ", "ξ"], "looksLike": "", "note": ""},
+  {"order": 7, "upper": "Η", "lower": "η", "name": "eta", "translit": "ē", "sound": "lange e (zoals in het Franse 'être')", "ex": "ἡδονή", "exNl": "genot, vreugde", "confusable": [], "looksLike": "H (LET OP: klinkt NIET als 'h', maar als een lange 'e' - klassieke valse vriend voor beginners)", "note": ""},
+  {"order": 8, "upper": "Θ", "lower": "θ", "name": "theta", "translit": "th", "sound": "th (zoals Engelse 'th' in 'think')", "ex": "θάνατος", "exNl": "de dood", "confusable": ["Φ", "φ"], "looksLike": "", "note": ""},
+  {"order": 9, "upper": "Ι", "lower": "ι", "name": "iota", "translit": "i", "sound": "i (kort of lang)", "ex": "ἱερός", "exNl": "heilig", "confusable": [], "looksLike": "", "note": ""},
+  {"order": 10, "upper": "Κ", "lower": "κ", "name": "kappa", "translit": "k", "sound": "k", "ex": "καλός", "exNl": "mooi", "confusable": ["Χ", "χ"], "looksLike": "", "note": ""},
+  {"order": 11, "upper": "Λ", "lower": "λ", "name": "lambda", "translit": "l", "sound": "l", "ex": "λόγος", "exNl": "woord", "confusable": ["Δ", "δ"], "looksLike": "", "note": ""},
+  {"order": 12, "upper": "Μ", "lower": "μ", "name": "mu", "translit": "m", "sound": "m", "ex": "μάχη", "exNl": "gevecht, strijd", "confusable": ["Ν", "ν"], "looksLike": "", "note": ""},
+  {"order": 13, "upper": "Ν", "lower": "ν", "name": "nu", "translit": "n", "sound": "n", "ex": "νεκρός", "exNl": "lijk, dode", "confusable": ["Μ", "μ"], "looksLike": "N/v (kleine nu lijkt op een Latijnse 'v', klinkt als 'n')", "note": ""},
+  {"order": 14, "upper": "Ξ", "lower": "ξ", "name": "xi", "translit": "x", "sound": "ks", "ex": "ξένος", "exNl": "vreemdeling", "confusable": ["Ζ", "ζ"], "looksLike": "", "note": ""},
+  {"order": 15, "upper": "Ο", "lower": "ο", "name": "omikron", "translit": "o", "sound": "korte o (zoals in 'pot')", "ex": "ὄνομα", "exNl": "naam", "confusable": ["Ω", "ω"], "looksLike": "", "note": "Omikron is KORT, omega (letter 24) is LANG - beide zien er rond uit, dus makkelijk te verwarren."},
+  {"order": 16, "upper": "Π", "lower": "π", "name": "pi", "translit": "p", "sound": "p", "ex": "πατήρ", "exNl": "vader", "confusable": ["Γ", "γ"], "looksLike": "", "note": ""},
+  {"order": 17, "upper": "Ρ", "lower": "ρ", "name": "rho", "translit": "r", "sound": "r (rollende r)", "ex": "ῥίπτω", "exNl": "werpen, gooien", "confusable": [], "looksLike": "P (LET OP: klinkt NIET als 'p', maar als 'r' - klassieke valse vriend)", "note": ""},
+  {"order": 18, "upper": "Σ", "lower": "σ (begin/midden van woord) / ς (einde van woord)", "name": "sigma", "translit": "s", "sound": "s", "ex": "σῖτος", "exNl": "eten, voedsel", "confusable": [], "looksLike": "", "note": "Enige Griekse letter met twee verschillende kleine-lettervormen, afhankelijk van de positie in het woord. Goede kandidaat voor een aparte mini-oefening ('welke vorm hoort waar?')."},
+  {"order": 19, "upper": "Τ", "lower": "τ", "name": "tau", "translit": "t", "sound": "t", "ex": "τιμή", "exNl": "eer, eerbewijs", "confusable": [], "looksLike": "", "note": ""},
+  {"order": 20, "upper": "Υ", "lower": "υ", "name": "upsilon", "translit": "u / y", "sound": "Franse 'u' (zoals in 'tu')", "ex": "υἱός", "exNl": "zoon", "confusable": [], "looksLike": "Y (klinkt niet als Nederlandse 'y', maar als Franse 'u')", "note": ""},
+  {"order": 21, "upper": "Φ", "lower": "φ", "name": "phi", "translit": "ph", "sound": "ph/f", "ex": "φίλος", "exNl": "vriend", "confusable": ["Θ", "θ"], "looksLike": "", "note": ""},
+  {"order": 22, "upper": "Χ", "lower": "χ", "name": "chi", "translit": "ch", "sound": "ch (zoals in 'ach', geschraapt)", "ex": "χείρ", "exNl": "hand, arm", "confusable": ["Κ", "κ"], "looksLike": "X (LET OP: klinkt NIET als 'x', maar als 'ch' - klassieke valse vriend)", "note": ""},
+  {"order": 23, "upper": "Ψ", "lower": "ψ", "name": "psi", "translit": "ps", "sound": "ps", "ex": "ψυχή", "exNl": "ziel, geest", "confusable": [], "looksLike": "", "note": ""},
+  {"order": 24, "upper": "Ω", "lower": "ω", "name": "omega", "translit": "ō", "sound": "lange o (zoals in het Engelse 'go')", "ex": "ὡς", "exNl": "(zo)als", "confusable": ["Ο", "ο"], "looksLike": "", "note": "Omega is LANG, omikron (letter 15) is KORT - zie ook de note daar."},
+];
+
 /* ================= STATE ================= */
 let currentLang = 'la';
 let currentTopic = 'nouns';
 let currentView = 'leren';
 
-const LANGS = [ {id:'la', label:'Latijn'}, {id:'de', label:'Duits'}, {id:'fr', label:'Frans'} ];
-const TOPICS = [ {id:'nouns', label:'Zelfstandige naamwoorden'}, {id:'verbs', label:'Werkwoorden'}, {id:'vocab', label:'Vocabulaire'} ];
+const LANGS = [ {id:'la', label:'Latijn'}, {id:'de', label:'Duits'}, {id:'fr', label:'Frans'}, {id:'el', label:'Grieks'} ];
+const TOPICS_NORMAL = [ {id:'nouns', label:'Zelfstandige naamwoorden'}, {id:'verbs', label:'Werkwoorden'}, {id:'vocab', label:'Vocabulaire'} ];
+const TOPICS_GREEK = [ {id:'alfabet', label:'Alfabet'} ];
+function currentTopics(){ return currentLang==='el' ? TOPICS_GREEK : TOPICS_NORMAL; }
 
 /* ================= NAV RENDER ================= */
 const langNav = document.getElementById('lang-nav');
@@ -3852,19 +3884,27 @@ const content = document.getElementById('content');
 LANGS.forEach(l=>{
   const b = document.createElement('button');
   b.textContent = l.label; b.dataset.id = l.id;
-  b.addEventListener('click', ()=>{ currentLang=l.id; render(); });
+  b.addEventListener('click', ()=>{
+    currentLang=l.id;
+    const topics = currentTopics();
+    if(!topics.find(t=>t.id===currentTopic)) currentTopic = topics[0].id;
+    render();
+  });
   langNav.appendChild(b);
-});
-TOPICS.forEach(t=>{
-  const b = document.createElement('button');
-  b.textContent = t.label; b.dataset.id = t.id;
-  b.addEventListener('click', ()=>{ currentTopic=t.id; currentView='leren'; render(); });
-  topicNav.appendChild(b);
 });
 
 function renderNav(){
   Array.from(langNav.children).forEach(b=>b.classList.toggle('active', b.dataset.id===currentLang));
-  Array.from(topicNav.children).forEach(b=>b.classList.toggle('active', b.dataset.id===currentTopic));
+
+  topicNav.innerHTML = '';
+  currentTopics().forEach(t=>{
+    const b = document.createElement('button');
+    b.textContent = t.label; b.dataset.id = t.id;
+    b.classList.toggle('active', t.id===currentTopic);
+    b.addEventListener('click', ()=>{ currentTopic=t.id; currentView='leren'; render(); });
+    topicNav.appendChild(b);
+  });
+
   viewNav.innerHTML = '';
   if(currentTopic!=='vocab'){
     ['leren','oefenen'].forEach(v=>{
@@ -3926,24 +3966,40 @@ function laNounLeren(){
   })}
 
   <h3>2e verbuigingsgroep — mannelijk: servus, servi / onzijdig: donum, doni</h3>
-  ${tableHTML(['servus (m.) ev','servus mv','donum (o.) ev','donum mv'], [
+  ${tableHTML(['servus (m.) ev','servus mv'], [
     {label:'Nom.',color:'var(--nom)'},{label:'Gen.',color:'var(--gen)'},{label:'Dat.',color:'var(--dat)'},
     {label:'Acc.',color:'var(--acc)'},{label:'Abl.',color:'var(--abl)'}
   ], (r,c)=>{
     const keys=['nomSg','genSg','datSg','accSg','ablSg','nomPl','genPl','datPl','accPl','ablPl'];
-    const m = decl2m('serv'); const n = decl2n('don');
-    if(c===0) return m[keys[r]]; if(c===1) return m[keys[r+5]]; if(c===2) return n[keys[r]]; return n[keys[r+5]];
+    const m = decl2m('serv');
+    return c===0 ? m[keys[r]] : m[keys[r+5]];
+  })}
+  ${tableHTML(['donum (o.) ev','donum mv'], [
+    {label:'Nom.',color:'var(--nom)'},{label:'Gen.',color:'var(--gen)'},{label:'Dat.',color:'var(--dat)'},
+    {label:'Acc.',color:'var(--acc)'},{label:'Abl.',color:'var(--abl)'}
+  ], (r,c)=>{
+    const keys=['nomSg','genSg','datSg','accSg','ablSg','nomPl','genPl','datPl','accPl','ablPl'];
+    const n = decl2n('don');
+    return c===0 ? n[keys[r]] : n[keys[r+5]];
   })}
   <div class="note">Bij onzijdige woorden zijn nominatief en accusatief altijd gelijk.</div>
 
   <h3>3e verbuigingsgroep — rex, regis / onzijdig: nomen, nominis</h3>
-  ${tableHTML(['rex (m.) ev','rex mv','nomen (o.) ev','nomen mv'], [
+  ${tableHTML(['rex (m.) ev','rex mv'], [
     {label:'Nom.',color:'var(--nom)'},{label:'Gen.',color:'var(--gen)'},{label:'Dat.',color:'var(--dat)'},
     {label:'Acc.',color:'var(--acc)'},{label:'Abl.',color:'var(--abl)'}
   ], (r,c)=>{
     const keys=['nomSg','genSg','datSg','accSg','ablSg','nomPl','genPl','datPl','accPl','ablPl'];
-    const m = decl3('rex','reg'); const n = decl3n('nomen','nomin');
-    if(c===0) return m[keys[r]]; if(c===1) return m[keys[r+5]]; if(c===2) return n[keys[r]]; return n[keys[r+5]];
+    const m = decl3('rex','reg');
+    return c===0 ? m[keys[r]] : m[keys[r+5]];
+  })}
+  ${tableHTML(['nomen (o.) ev','nomen mv'], [
+    {label:'Nom.',color:'var(--nom)'},{label:'Gen.',color:'var(--gen)'},{label:'Dat.',color:'var(--dat)'},
+    {label:'Acc.',color:'var(--acc)'},{label:'Abl.',color:'var(--abl)'}
+  ], (r,c)=>{
+    const keys=['nomSg','genSg','datSg','accSg','ablSg','nomPl','genPl','datPl','accPl','ablPl'];
+    const n = decl3n('nomen','nomin');
+    return c===0 ? n[keys[r]] : n[keys[r+5]];
   })}
 
   <h3>Bijvoeglijke naamwoorden — bonus, bona, bonum</h3>
@@ -4051,11 +4107,16 @@ function deNounLeren(){
     <li><strong>ein-Gruppe</strong> — verbuigt als <em>ein/eine/ein</em>: ook <em>kein</em> (geen) en de bezittelijke voornaamwoorden <em>mein/dein/sein/ihr/unser/euer/Ihr</em> (mijn/jouw/zijn/haar/ons/jullie/uw).</li>
   </ul>
   <h3>Bepaald lidwoord (der/die/das) — der-Gruppe</h3>
-  ${tableHTML(['mannelijk (der)','vrouwelijk (die)','onzijdig (das)','meervoud (die)'],[
+  ${tableHTML(['mannelijk (der)','vrouwelijk (die)'],[
     {label:'Nom.',color:'var(--nom)'},{label:'Gen.',color:'var(--gen)'},{label:'Dat.',color:'var(--dat)'},{label:'Acc.',color:'var(--acc)'}
   ], (r,c)=>{
-    const gArr=['m','f','n']; const casesOrder=['nomSg','genSg','datSg','accSg'];
-    if(c<3){ return deArtForms(gArr[c])[casesOrder[r]]; }
+    const gArr=['m','f']; const casesOrder=['nomSg','genSg','datSg','accSg'];
+    return deArtForms(gArr[c])[casesOrder[r]];
+  })}
+  ${tableHTML(['onzijdig (das)','meervoud (die)'],[
+    {label:'Nom.',color:'var(--nom)'},{label:'Gen.',color:'var(--gen)'},{label:'Dat.',color:'var(--dat)'},{label:'Acc.',color:'var(--acc)'}
+  ], (r,c)=>{
+    if(c===0){ const casesOrder=['nomSg','genSg','datSg','accSg']; return deArtForms('n')[casesOrder[r]]; }
     const pl=deArtForms('m'); const plKeys=['nomPl','genPl','datPl','accPl']; return pl[plKeys[r]];
   })}
   <div class="note">Het zelfstandig naamwoord zelf verandert bijna nooit — alleen de genitief enkelvoud (mannelijk/onzijdig) krijgt vaak een extra <em>-s</em> of <em>-es</em> (<em>der Mann → des Mannes</em>), en de datief meervoud een <em>-n</em> (<em>den Männern</em>). Deze cursus oefent vooral het lidwoord, de belangrijkste naamval-marker.</div>
@@ -4106,7 +4167,8 @@ function deVerbLeren(){
 
   <h2>Modale hulpwerkwoorden</h2>
   <p>Modale werkwoorden geven aan of iets wenselijk, mogelijk of noodzakelijk is. De ich-vorm en de er/sie/es-vorm zijn bij deze werkwoorden altijd gelijk aan elkaar en hebben geen uitgang.</p>
-  ${tableHTML(DE_MODALS.map(m=>`${m.de} (${m.nl})`), PERSON_LABEL_DE.map(p=>({label:p})), (r,c)=>DE_MODALS[c].forms[r])}
+  ${tableHTML(DE_MODALS.slice(0,4).map(m=>`${m.de} (${m.nl})`), PERSON_LABEL_DE.map(p=>({label:p})), (r,c)=>DE_MODALS[c].forms[r])}
+  ${tableHTML(DE_MODALS.slice(4).map(m=>`${m.de} (${m.nl})`), PERSON_LABEL_DE.map(p=>({label:p})), (r,c)=>DE_MODALS[c+4].forms[r])}
   <div class="note"><em>Möchten</em> (graag willen) en <em>wissen</em> (weten) horen er ook bij: <em>möchten</em> krijgt wél gewoon een uitgang per persoon, <em>wissen</em> heeft — net als de echte modale werkwoorden — geen uitgang bij ich/er/sie/es/man: <em>ich weiß, er weiß</em>.</div>
   `;
 }
@@ -4217,6 +4279,68 @@ function frVocabOefenen(){
     cats['hst'+i] = { title: chap.title, sub: 'Grandes Lignes hoofdstuk', words: chap.words, vocabOnly: true };
   });
   return renderOefenCategoryPicker(cats, null, (w)=>w.fr);
+}
+
+/* ================= CONTENT: GREEK ALFABET ================= */
+function elAlfabetLeren(){
+  const rows = EL_ALFABET.map(l=>`
+    <tr>
+      <td>${l.order}</td>
+      <td style="font-size:1.2rem;">${l.upper}</td>
+      <td style="font-size:1.2rem;">${l.lower}</td>
+      <td>${l.name}</td>
+      <td>${l.sound}</td>
+    </tr>`).join('');
+
+  const valseVrienden = EL_ALFABET.filter(l=>l.looksLike);
+  const confusablePairs = EL_ALFABET.filter(l=>l.confusable && l.confusable.length);
+  const sigma = EL_ALFABET.find(l=>l.name==='sigma');
+
+  return `
+  <h2>Het Griekse alfabet</h2>
+  <p>Het Griekse alfabet heeft <strong>24 letters</strong>. Sommige zien er vertrouwd uit en klinken ook zo (zoals <em>Α</em>, <em>Β</em>, <em>Κ</em>), maar een aantal letters lijkt qua vorm op een Latijnse letter terwijl de klank compleet anders is — dat zijn de beruchte "valse vrienden".</p>
+
+  <div class="table-scroll"><table>
+    <thead><tr><th>#</th><th>Hoofdletter</th><th>kleine letter</th><th>naam</th><th>klank</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>
+
+  <h2>Valse vrienden</h2>
+  <p>Deze letters lijken op een Latijnse letter, maar klinken anders dan je zou verwachten:</p>
+  ${valseVrienden.map(l=>`
+    <div class="case-card" style="--case-color:var(--nom);">
+      <h3>${l.upper} ${l.lower} — ${l.name}</h3>
+      <p class="func">${l.looksLike}</p>
+    </div>`).join('')}
+
+  <h2>Makkelijk te verwisselen</h2>
+  <p>Deze letterparen lijken qua vórm op elkaar (niet per se qua klank) — let dus extra op bij het lezen:</p>
+  <div class="note">
+    ${confusablePairs.map(l=>`<strong>${l.upper} ${l.lower}</strong> (${l.name}) ↔ ${l.confusable.join(' ')}`).join('<br>')}
+  </div>
+  ${EL_ALFABET.filter(l=>l.note).map(l=>`<div class="note"><strong>${l.upper} ${l.lower} (${l.name}):</strong> ${l.note}</div>`).join('')}
+
+  <h2>Sigma: twee vormen</h2>
+  <div class="note">De letter <strong>sigma</strong> heeft als enige Griekse letter twee verschillende vormen voor de kleine letter: <strong>σ</strong> aan het begin of midden van een woord, en <strong>ς</strong> aan het eind van een woord. Bijvoorbeeld: <em>${sigma?sigma.ex:''}</em> (${sigma?sigma.exNl:''}).</div>
+  `;
+}
+
+function elAlfabetOefenen(){
+  const cats = {
+    letters: {
+      title: 'Letters en namen',
+      sub: 'hoofdletter/kleine letter ↔ naam',
+      words: EL_ALFABET.map(l=>({ greek: `${l.upper} ${l.lower}`, nl: l.name })),
+      vocabOnly: true
+    },
+    woorden: {
+      title: 'Voorbeeldwoorden',
+      sub: 'Grieks ↔ Nederlands',
+      words: EL_ALFABET.map(l=>({ greek: l.ex, nl: l.exNl })),
+      vocabOnly: true
+    }
+  };
+  return renderOefenCategoryPicker(cats, null, (w)=>w.greek);
 }
 
 /* ================= GENERIC OEFENEN ENGINE ================= */
@@ -4581,7 +4705,10 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
 function render(){
   renderNav();
   let html = '';
-  if(currentTopic==='vocab'){
+  if(currentLang==='el'){
+    html = currentView==='leren' ? elAlfabetLeren() : elAlfabetOefenen();
+  }
+  else if(currentTopic==='vocab'){
     if(currentLang==='de') html = deVocabOefenen();
     else if(currentLang==='la') html = laVocabOefenen();
     else if(currentLang==='fr') html = frVocabOefenen();
