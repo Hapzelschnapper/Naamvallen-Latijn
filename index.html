@@ -21,6 +21,7 @@
     --gold:#d9a441; --gold-dim:#a9803a;
     --nom:#c1453d; --gen:#d9a441; --dat:#5e8c6a; --acc:#4c7bb0; --abl:#a06fa3;
     --good:#5e8c6a; --bad:#c1453d; --radius:6px;
+    --lang-la:#c1453d; --lang-de:#4a7856; --lang-fr:#4c6fa5; --lang-el:#3f8f8a;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -43,6 +44,14 @@
   }
   nav.pillnav button:hover{border-color:var(--gold-dim);color:var(--ink);}
   nav.pillnav button.active{background:var(--gold);color:#221c15;border-color:var(--gold);}
+  #lang-nav button[data-id="la"].active{background:var(--lang-la);border-color:var(--lang-la);color:#fff;}
+  #lang-nav button[data-id="de"].active{background:var(--lang-de);border-color:var(--lang-de);color:#fff;}
+  #lang-nav button[data-id="fr"].active{background:var(--lang-fr);border-color:var(--lang-fr);color:#fff;}
+  #lang-nav button[data-id="el"].active{background:var(--lang-el);border-color:var(--lang-el);color:#fff;}
+  #lang-nav button[data-id="la"]:hover{border-color:var(--lang-la);}
+  #lang-nav button[data-id="de"]:hover{border-color:var(--lang-de);}
+  #lang-nav button[data-id="fr"]:hover{border-color:var(--lang-fr);}
+  #lang-nav button[data-id="el"]:hover{border-color:var(--lang-el);}
   nav.pillnav.sub button{font-size:.85rem;padding:7px 14px;}
   nav.pillnav.sub2 button{font-size:.8rem;padding:6px 12px;background:transparent;}
   nav.pillnav.sub2 button.active{background:var(--gold-dim);color:#221c15;}
@@ -150,7 +159,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.33</div>
+<div class="version-badge">v1.35</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -3914,8 +3923,13 @@ let currentView = 'leren';
 
 const LANGS = [ {id:'la', label:'Latijn'}, {id:'de', label:'Duits'}, {id:'fr', label:'Frans'}, {id:'el', label:'Grieks'} ];
 const TOPICS_NORMAL = [ {id:'nouns', label:'Zelfstandige naamwoorden'}, {id:'verbs', label:'Werkwoorden'}, {id:'vocab', label:'Vocabulaire'} ];
+const TOPICS_NO_NOUNS = [ {id:'verbs', label:'Werkwoorden'}, {id:'vocab', label:'Vocabulaire'} ];
 const TOPICS_GREEK = [ {id:'alfabet', label:'Alfabet'} ];
-function currentTopics(){ return currentLang==='el' ? TOPICS_GREEK : TOPICS_NORMAL; }
+function currentTopics(){
+  if(currentLang==='el') return TOPICS_GREEK;
+  if(currentLang==='fr') return TOPICS_NO_NOUNS; // Frans heeft geen naamvaloefening voor zelfstandige naamwoorden
+  return TOPICS_NORMAL;
+}
 
 /* ================= NAV RENDER ================= */
 const langNav = document.getElementById('lang-nav');
