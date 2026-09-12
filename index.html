@@ -142,7 +142,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.26</div>
+<div class="version-badge">v1.29</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -4326,33 +4326,16 @@ function elAlfabetLeren(){
       <td>${l.sound}</td>
     </tr>`).join('');
 
-  const valseVrienden = EL_ALFABET.filter(l=>l.looksLike);
-  const confusablePairs = EL_ALFABET.filter(l=>l.confusable && l.confusable.length);
   const sigma = EL_ALFABET.find(l=>l.name==='sigma');
 
   return `
   <h2>Het Griekse alfabet</h2>
-  <p>Het Griekse alfabet heeft <strong>24 letters</strong>. Sommige zien er vertrouwd uit en klinken ook zo (zoals <em>Α</em>, <em>Β</em>, <em>Κ</em>), maar een aantal letters lijkt qua vorm op een Latijnse letter terwijl de klank compleet anders is — dat zijn de beruchte "valse vrienden".</p>
+  <p>Het Griekse alfabet heeft <strong>24 letters</strong>.</p>
 
   <div class="table-scroll"><table>
     <thead><tr><th>#</th><th>Hoofdletter</th><th>kleine letter</th><th>naam</th><th>klank</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>
-
-  <h2>Valse vrienden</h2>
-  <p>Deze letters lijken op een Latijnse letter, maar klinken anders dan je zou verwachten:</p>
-  ${valseVrienden.map(l=>`
-    <div class="case-card" style="--case-color:var(--nom);">
-      <h3>${l.upper} ${l.lower} — ${l.name}</h3>
-      <p class="func">${l.looksLike}</p>
-    </div>`).join('')}
-
-  <h2>Makkelijk te verwisselen</h2>
-  <p>Deze letterparen lijken qua vórm op elkaar (niet per se qua klank) — let dus extra op bij het lezen:</p>
-  <div class="note">
-    ${confusablePairs.map(l=>`<strong>${l.upper} ${l.lower}</strong> (${l.name}) ↔ ${l.confusable.join(' ')}`).join('<br>')}
-  </div>
-  ${EL_ALFABET.filter(l=>l.note).map(l=>`<div class="note"><strong>${l.upper} ${l.lower} (${l.name}):</strong> ${l.note}</div>`).join('')}
 
   <h2>Sigma: twee vormen</h2>
   <div class="note">De letter <strong>sigma</strong> heeft als enige Griekse letter twee verschillende vormen voor de kleine letter: <strong>σ</strong> aan het begin of midden van een woord, en <strong>ς</strong> aan het eind van een woord. Bijvoorbeeld: <em>${sigma?sigma.ex:''}</em> (${sigma?sigma.exNl:''}).</div>
@@ -4366,9 +4349,9 @@ function elAlfabetOefenen(){
     <h2>Kies een oefenvorm</h2>
     <div class="cat-grid" data-role="mode-grid">
       <button class="cat-btn" data-mode="letters"><strong>Letters en namen</strong><span>Letter → naam, of naam → letter (via het schuifje)</span></button>
+      <button class="cat-btn" data-mode="uitspraak"><strong>Uitspraak</strong><span>Letter → juiste uitspraak (meerkeuze)</span></button>
       <button class="cat-btn" data-mode="matching"><strong>Hoofdletter ↔ kleine letter</strong><span>Match de hoofdletters met hun kleine letter</span></button>
-      <button class="cat-btn" data-mode="translit"><strong>Transliteratie</strong><span>Kies de juiste Latijnse schrijfwijze van een woord</span></button>
-      <button class="cat-btn" data-mode="woorden"><strong>Voorbeeldwoorden</strong><span>Grieks ↔ Nederlandse betekenis</span></button>
+      <button class="cat-btn" data-mode="translit"><strong>Transliteratie</strong><span>Transcribeer een woord naar Latijns schrift</span></button>
     </div>
     <div data-role="mode-content"></div>
   </div>`;
@@ -4381,8 +4364,8 @@ function initElAlfabetOefenen(wrapId){
   const modeContent = root.querySelector('[data-role="mode-content"]');
 
   const lettersCat = { letters: { title:'Letters en namen', sub:'', words: EL_ALFABET.map(l=>({ greek:`${l.upper} ${l.lower}`, nl: l.name })), vocabOnly:true } };
-  const translitCat = { translit: { title:'Transliteratie', sub:'', words: EL_ALFABET.map(l=>({ greek: l.ex, nl: elTransliterate(l.ex) })), vocabOnly:true } };
-  const woordenCat = { woorden: { title:'Voorbeeldwoorden', sub:'', words: EL_ALFABET.map(l=>({ greek: l.ex, nl: l.exNl })), vocabOnly:true } };
+  const uitspraakCat = { uitspraak: { title:'Uitspraak', sub:'', words: EL_ALFABET.map(l=>({ greek:`${l.upper} ${l.lower}`, nl: l.sound })), vocabOnly:true } };
+  const translitCat = { translit: { title:'Transliteratie', sub:'', words: EL_ALFABET.map(l=>({ greek: l.ex, nl: elTransliterate(l.ex), bonus: l.exNl })), vocabOnly:true } };
 
   Array.from(modeGrid.querySelectorAll('.cat-btn')).forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -4393,10 +4376,10 @@ function initElAlfabetOefenen(wrapId){
         setTimeout(()=>initMatchingGame(modeContent), 0);
       } else if(mode==='letters'){
         modeContent.innerHTML = renderOefenCategoryPicker(lettersCat, null, (w)=>w.greek, null, true);
+      } else if(mode==='uitspraak'){
+        modeContent.innerHTML = renderOefenCategoryPicker(uitspraakCat, null, (w)=>w.greek, null, true);
       } else if(mode==='translit'){
         modeContent.innerHTML = renderOefenCategoryPicker(translitCat, null, (w)=>w.greek, null, true);
-      } else if(mode==='woorden'){
-        modeContent.innerHTML = renderOefenCategoryPicker(woordenCat, null, (w)=>w.greek, null, true);
       }
     });
   });
@@ -4678,7 +4661,8 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOn
         correct,
         mcOptions: shuffle([correct, ...wrongPool.slice(0,3)]),
         accept: (v)=> ({ ok: normalizeNl(correct).includes(normAnswer(v)), typo:false }),
-        altLookup
+        altLookup,
+        bonusInfo: word.bonus
       };
     }
     const correct = lemmaFn(word);
@@ -4690,7 +4674,8 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOn
       correct,
       mcOptions: shuffle([correct, ...wrongPool.slice(0,3)]),
       accept: (v)=> ({ ok: splitAlternatives(correct).some(alt=>normAnswer(alt)===normAnswer(v)), typo:false }),
-      altLookup
+      altLookup,
+      bonusInfo: word.bonus
     };
   }
 
@@ -4802,11 +4787,11 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOn
 
     if(credit==='full'){
       score++; streak++;
-      feedbackEl.textContent = 'Goed zo!';
+      feedbackEl.textContent = current.bonusInfo ? `Goed zo! (dit betekent: "${current.bonusInfo}")` : 'Goed zo!';
       feedbackEl.className='feedback good';
     } else if(credit==='half'){
       score += 0.5; streak=0;
-      feedbackEl.textContent = 'Half goed — je gebruikte een hint.';
+      feedbackEl.textContent = current.bonusInfo ? `Half goed — je gebruikte een hint. (dit betekent: "${current.bonusInfo}")` : 'Half goed — je gebruikte een hint.';
       feedbackEl.className='feedback good';
     } else if(reason==='toomanyhints'){
       streak=0;
