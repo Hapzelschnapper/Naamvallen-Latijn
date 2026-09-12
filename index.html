@@ -142,7 +142,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.29</div>
+<div class="version-badge">v1.30</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -4375,11 +4375,11 @@ function initElAlfabetOefenen(wrapId){
         modeContent.innerHTML = renderMatchingGame();
         setTimeout(()=>initMatchingGame(modeContent), 0);
       } else if(mode==='letters'){
-        modeContent.innerHTML = renderOefenCategoryPicker(lettersCat, null, (w)=>w.greek, null, true);
+        modeContent.innerHTML = renderOefenCategoryPicker(lettersCat, null, (w)=>w.greek, null, true, true);
       } else if(mode==='uitspraak'){
-        modeContent.innerHTML = renderOefenCategoryPicker(uitspraakCat, null, (w)=>w.greek, null, true);
+        modeContent.innerHTML = renderOefenCategoryPicker(uitspraakCat, null, (w)=>w.greek, null, true, true);
       } else if(mode==='translit'){
-        modeContent.innerHTML = renderOefenCategoryPicker(translitCat, null, (w)=>w.greek, null, true);
+        modeContent.innerHTML = renderOefenCategoryPicker(translitCat, null, (w)=>w.greek, null, true, true);
       }
     });
   });
@@ -4497,9 +4497,9 @@ function normalizeNl(nl){
 }
 function normAnswer(s){ return s.trim().toLowerCase(); }
 
-function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm, mcOnly){
+function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm, mcOnly, noHints){
   const wrapId = 'oefen-' + Math.random().toString(36).slice(2,8);
-  setTimeout(()=>initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOnly), 0);
+  setTimeout(()=>initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOnly, noHints), 0);
   return `<div id="${wrapId}">
     <h2>Kies een categorie</h2>
     <div class="cat-grid" data-role="cat-grid"></div>
@@ -4530,7 +4530,7 @@ function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm
   </div>`;
 }
 
-function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOnly){
+function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOnly, noHints){
   const root = document.getElementById(wrapId);
   if(!root) return;
   const catGrid = root.querySelector('[data-role="cat-grid"]');
@@ -4704,7 +4704,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOn
     checkBtn.disabled=false;
 
     const wEl = questionText.querySelector('.w');
-    if(wEl){
+    if(wEl && !noHints){
       wEl.classList.add('hintable');
       wEl.title = 'Tik voor een hint';
       wEl.addEventListener('click', onHintTap);
