@@ -150,7 +150,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.31</div>
+<div class="version-badge">v1.33</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -4529,9 +4529,9 @@ function normAnswer(s){ return s.trim().toLowerCase(); }
 function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm, mcOnly, noHints){
   const wrapId = 'oefen-' + Math.random().toString(36).slice(2,8);
   setTimeout(()=>initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOnly, noHints), 0);
+  const singleCat = Object.keys(cats).length===1;
   return `<div id="${wrapId}">
-    <h2>Kies een categorie</h2>
-    <div class="cat-grid" data-role="cat-grid"></div>
+    ${singleCat ? '' : '<h2>Kies een categorie</h2><div class="cat-grid" data-role="cat-grid"></div>'}
     <details class="wordlist" data-role="wordlist-wrap">
       <summary>Bekijk de woorden van deze groep</summary>
       <div class="word-grid" data-role="word-grid"></div>
@@ -4588,7 +4588,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOn
     btn.className = 'cat-btn';
     btn.innerHTML = `<strong>${cat.title}</strong><span>${cat.sub} — ${cat.words.length} woorden</span>`;
     btn.addEventListener('click', ()=>selectCategory(key));
-    catGrid.appendChild(btn);
+    if(catGrid) catGrid.appendChild(btn);
   });
 
   Array.from(dirToggle.querySelectorAll('.dir-btn')).forEach(b=>{
@@ -4601,7 +4601,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOn
 
   function selectCategory(key){
     catKey = key;
-    Array.from(catGrid.children).forEach((b,i)=>b.classList.toggle('active', Object.keys(cats)[i]===key));
+    if(catGrid) Array.from(catGrid.children).forEach((b,i)=>b.classList.toggle('active', Object.keys(cats)[i]===key));
     const cat = cats[key];
     wordGrid.innerHTML = cat.words.map(w=>`<div><b>${lemmaFn(w)}</b> — ${w.nl}</div>`).join('');
     wordlistWrap.open = false;
@@ -4753,7 +4753,6 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOn
       optionsEl.style.display='none';
       optionsEl.innerHTML = '';
       inputRow.style.display='flex';
-      setTimeout(()=>textInput.focus(), 0);
     }
   }
 
