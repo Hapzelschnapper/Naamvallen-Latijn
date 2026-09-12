@@ -21,7 +21,10 @@
     --gold:#d9a441; --gold-dim:#a9803a;
     --nom:#c1453d; --gen:#d9a441; --dat:#5e8c6a; --acc:#4c7bb0; --abl:#a06fa3;
     --good:#5e8c6a; --bad:#c1453d; --radius:6px;
-    --lang-la:#c1453d; --lang-de:#4a7856; --lang-fr:#4c6fa5; --lang-el:#3f8f8a;
+    --lang-la:#d1776a; --lang-la-dim:#a85a4f;
+    --lang-de:#c9a15c; --lang-de-dim:#a17f42;
+    --lang-fr:#7f9cc4; --lang-fr-dim:#5f7ba3;
+    --lang-el:#6cb3b8; --lang-el-dim:#4f8d92;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -44,14 +47,20 @@
   }
   nav.pillnav button:hover{border-color:var(--gold-dim);color:var(--ink);}
   nav.pillnav button.active{background:var(--gold);color:#221c15;border-color:var(--gold);}
-  #lang-nav button[data-id="la"].active{background:var(--lang-la);border-color:var(--lang-la);color:#fff;}
-  #lang-nav button[data-id="de"].active{background:var(--lang-de);border-color:var(--lang-de);color:#fff;}
-  #lang-nav button[data-id="fr"].active{background:var(--lang-fr);border-color:var(--lang-fr);color:#fff;}
-  #lang-nav button[data-id="el"].active{background:var(--lang-el);border-color:var(--lang-el);color:#fff;}
+  #lang-nav button[data-id="la"].active{background:var(--lang-la);border-color:var(--lang-la);color:#221c15;}
+  #lang-nav button[data-id="de"].active{background:var(--lang-de);border-color:var(--lang-de);color:#221c15;}
+  #lang-nav button[data-id="fr"].active{background:var(--lang-fr);border-color:var(--lang-fr);color:#221c15;}
+  #lang-nav button[data-id="el"].active{background:var(--lang-el);border-color:var(--lang-el);color:#221c15;}
   #lang-nav button[data-id="la"]:hover{border-color:var(--lang-la);}
   #lang-nav button[data-id="de"]:hover{border-color:var(--lang-de);}
   #lang-nav button[data-id="fr"]:hover{border-color:var(--lang-fr);}
   #lang-nav button[data-id="el"]:hover{border-color:var(--lang-el);}
+
+  /* Retint the whole theme's gold accent to match the language currently being studied */
+  body[data-lang="la"]{ --gold:var(--lang-la); --gold-dim:var(--lang-la-dim); }
+  body[data-lang="de"]{ --gold:var(--lang-de); --gold-dim:var(--lang-de-dim); }
+  body[data-lang="fr"]{ --gold:var(--lang-fr); --gold-dim:var(--lang-fr-dim); }
+  body[data-lang="el"]{ --gold:var(--lang-el); --gold-dim:var(--lang-el-dim); }
   nav.pillnav.sub button{font-size:.85rem;padding:7px 14px;}
   nav.pillnav.sub2 button{font-size:.8rem;padding:6px 12px;background:transparent;}
   nav.pillnav.sub2 button.active{background:var(--gold-dim);color:#221c15;}
@@ -159,7 +168,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.35</div>
+<div class="version-badge">v1.36</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -3950,6 +3959,7 @@ LANGS.forEach(l=>{
 });
 
 function renderNav(){
+  document.body.dataset.lang = currentLang;
   Array.from(langNav.children).forEach(b=>b.classList.toggle('active', b.dataset.id===currentLang));
 
   topicNav.innerHTML = '';
