@@ -116,6 +116,14 @@
   .match-tile.matched{background:var(--good);border-color:var(--good);color:#fff;opacity:.75;}
   .match-tile.wrong-flash{background:var(--bad);border-color:var(--bad);color:#fff;}
   .match-tile:disabled{cursor:default;}
+
+  .alfabet-table th, .alfabet-table td{padding:5px 8px;}
+  .alfabet-row{cursor:pointer;}
+  .alfabet-row:hover td{background:rgba(217,164,65,0.08);}
+  .alfabet-row.open td{background:rgba(217,164,65,0.12);}
+  .alfabet-row td:last-child::after{content:' ▾';color:var(--ink-faint);font-size:.75rem;}
+  .alfabet-row.open td:last-child::after{content:' ▴';color:var(--gold);}
+  .alfabet-detail td{color:var(--ink-dim);font-size:.85rem;background:var(--card-2);border-bottom:1px solid rgba(217,164,65,0.15);}
   .quiz-meta{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-faint);margin-bottom:12px;}
   .quiz-question{font-size:1.1rem;color:var(--ink);margin-bottom:4px;}
   .quiz-question .w{font-style:italic;color:var(--gold);}
@@ -142,7 +150,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.30</div>
+<div class="version-badge">v1.31</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -4317,29 +4325,50 @@ function frVocabOefenen(){
 
 /* ================= CONTENT: GREEK ALFABET ================= */
 function elAlfabetLeren(){
-  const rows = EL_ALFABET.map(l=>`
-    <tr>
-      <td>${l.order}</td>
-      <td style="font-size:1.2rem;">${l.upper}</td>
-      <td style="font-size:1.2rem;">${l.lower}</td>
+  const wrapId = 'elleren-' + Math.random().toString(36).slice(2,8);
+  setTimeout(()=>initElAlfabetLeren(wrapId), 0);
+
+  const rows = EL_ALFABET.map((l,i)=>`
+    <tr class="alfabet-row" data-idx="${i}">
+      <td style="font-size:1.15rem;">${l.upper}</td>
+      <td style="font-size:1.15rem;">${l.lower}</td>
       <td>${l.name}</td>
-      <td>${l.sound}</td>
+    </tr>
+    <tr class="alfabet-detail" data-idx="${i}" style="display:none;">
+      <td colspan="3">${l.sound}</td>
     </tr>`).join('');
 
   const sigma = EL_ALFABET.find(l=>l.name==='sigma');
 
   return `
+  <div id="${wrapId}">
   <h2>Het Griekse alfabet</h2>
-  <p>Het Griekse alfabet heeft <strong>24 letters</strong>.</p>
+  <p>Het Griekse alfabet heeft <strong>24 letters</strong>. Tik op een rij voor de uitspraak.</p>
 
-  <div class="table-scroll"><table>
-    <thead><tr><th>#</th><th>Hoofdletter</th><th>kleine letter</th><th>naam</th><th>klank</th></tr></thead>
+  <div class="table-scroll"><table class="alfabet-table">
+    <thead><tr><th>Hoofdletter</th><th>kleine letter</th><th>naam</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>
+  </div>
 
   <h2>Sigma: twee vormen</h2>
   <div class="note">De letter <strong>sigma</strong> heeft als enige Griekse letter twee verschillende vormen voor de kleine letter: <strong>σ</strong> aan het begin of midden van een woord, en <strong>ς</strong> aan het eind van een woord. Bijvoorbeeld: <em>${sigma?sigma.ex:''}</em> (${sigma?sigma.exNl:''}).</div>
   `;
+}
+
+function initElAlfabetLeren(wrapId){
+  const root = document.getElementById(wrapId);
+  if(!root) return;
+  root.querySelectorAll('.alfabet-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const idx = row.dataset.idx;
+      const detail = root.querySelector(`.alfabet-detail[data-idx="${idx}"]`);
+      if(!detail) return;
+      const opening = detail.style.display === 'none';
+      detail.style.display = opening ? 'table-row' : 'none';
+      row.classList.toggle('open', opening);
+    });
+  });
 }
 
 function elAlfabetOefenen(){
