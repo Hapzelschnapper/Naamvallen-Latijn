@@ -103,6 +103,19 @@
   .text-input:focus{outline:2px solid var(--gold);outline-offset:1px;}
   .check-btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;background:var(--gold);color:#221c15;border:none;border-radius:var(--radius);padding:11px 18px;cursor:pointer;}
   .check-btn:disabled{opacity:.6;cursor:default;}
+
+  .match-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media (max-width:420px){.match-grid{grid-template-columns:repeat(2,1fr);}}
+  .match-tile{
+    font-family:'Cinzel',serif;font-size:1.4rem;
+    background:var(--card-2);border:1px solid rgba(217,164,65,0.3);color:var(--ink);
+    border-radius:var(--radius);padding:16px 8px;cursor:pointer;transition:transform .1s,background .15s;
+  }
+  .match-tile:hover:not(:disabled){border-color:var(--gold);}
+  .match-tile.selected{background:var(--gold-dim);border-color:var(--gold);}
+  .match-tile.matched{background:var(--good);border-color:var(--good);color:#fff;opacity:.75;}
+  .match-tile.wrong-flash{background:var(--bad);border-color:var(--bad);color:#fff;}
+  .match-tile:disabled{cursor:default;}
   .quiz-meta{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-faint);margin-bottom:12px;}
   .quiz-question{font-size:1.1rem;color:var(--ink);margin-bottom:4px;}
   .quiz-question .w{font-style:italic;color:var(--gold);}
@@ -129,7 +142,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v1.23</div>
+<div class="version-badge">v1.26</div>
 <div class="wrap">
   <header>
     <h1>Naamvallen &amp; Werkwoorden</h1>
@@ -3839,31 +3852,52 @@ const FR_RE = [['vend','verkopen'],['attend','wachten'],['entend','horen'],['per
 
 /* ================= GREEK: ALFABET DATA ================= */
 const EL_ALFABET = [
-  {"order": 1, "upper": "Α", "lower": "α", "name": "alfa", "translit": "a", "sound": "a (zoals in 'tak')", "ex": "ἄγγελος", "exNl": "bode", "confusable": [], "looksLike": "", "note": ""},
-  {"order": 2, "upper": "Β", "lower": "β", "name": "beta", "translit": "b", "sound": "b", "ex": "βασίλεια", "exNl": "koningin", "confusable": [], "looksLike": "B (klinkt ook als 'b', geen valse vriend)", "note": ""},
-  {"order": 3, "upper": "Γ", "lower": "γ", "name": "gamma", "translit": "g", "sound": "g (hard, zoals in 'goal'; vóór γ/κ/χ/ξ klinkt het als 'ng')", "ex": "γαμέω", "exNl": "trouwen (met)", "confusable": ["Π", "π"], "looksLike": "", "note": ""},
+  {"order": 1, "upper": "Α", "lower": "α", "name": "alfa", "translit": "a", "sound": "a", "ex": "ἄγγελος", "exNl": "bode", "confusable": [], "looksLike": "", "note": ""},
+  {"order": 2, "upper": "Β", "lower": "β", "name": "bèta", "translit": "b", "sound": "b", "ex": "βασίλεια", "exNl": "koningin", "confusable": [], "looksLike": "B (klinkt ook als 'b', geen valse vriend)", "note": ""},
+  {"order": 3, "upper": "Γ", "lower": "γ", "name": "gamma", "translit": "g", "sound": "g (als in het Engels 'good'); vóór γ, κ, χ of ξ klinkt de γ als onze 'ng' in 'bang' — ἄγγελος werd uitgesproken als 'angkelos'", "ex": "γαμέω", "exNl": "trouwen (met)", "confusable": ["Π", "π"], "looksLike": "", "note": ""},
   {"order": 4, "upper": "Δ", "lower": "δ", "name": "delta", "translit": "d", "sound": "d", "ex": "δῆλος", "exNl": "duidelijk", "confusable": ["Λ", "λ"], "looksLike": "", "note": ""},
-  {"order": 5, "upper": "Ε", "lower": "ε", "name": "epsilon", "translit": "e", "sound": "korte e (zoals in 'bed')", "ex": "ἐλευθερία", "exNl": "vrijheid", "confusable": ["Η", "η"], "looksLike": "", "note": "Let op: epsilon is een KORTE e, eta (letter 7) is een LANGE e - qua vorm niet verwarrend, maar qua betekenis/klank vaak door elkaar gehaald."},
-  {"order": 6, "upper": "Ζ", "lower": "ζ", "name": "zeta", "translit": "z", "sound": "dz (zoals 'ds' in 'kids')", "ex": "ζητεῖ", "exNl": "(hij) zoekt", "confusable": ["Ξ", "ξ"], "looksLike": "", "note": ""},
-  {"order": 7, "upper": "Η", "lower": "η", "name": "eta", "translit": "ē", "sound": "lange e (zoals in het Franse 'être')", "ex": "ἡδονή", "exNl": "genot, vreugde", "confusable": [], "looksLike": "H (LET OP: klinkt NIET als 'h', maar als een lange 'e' - klassieke valse vriend voor beginners)", "note": ""},
-  {"order": 8, "upper": "Θ", "lower": "θ", "name": "theta", "translit": "th", "sound": "th (zoals Engelse 'th' in 'think')", "ex": "θάνατος", "exNl": "de dood", "confusable": ["Φ", "φ"], "looksLike": "", "note": ""},
-  {"order": 9, "upper": "Ι", "lower": "ι", "name": "iota", "translit": "i", "sound": "i (kort of lang)", "ex": "ἱερός", "exNl": "heilig", "confusable": [], "looksLike": "", "note": ""},
+  {"order": 5, "upper": "Ε", "lower": "ε", "name": "epsilon", "translit": "e", "sound": "ee/e", "ex": "ἐλευθερία", "exNl": "vrijheid", "confusable": ["Η", "η"], "looksLike": "", "note": "Let op: epsilon en èta worden in dit boek allebei als een soort 'e' uitgesproken (ee/e tegenover è) — let dus op de context, niet alleen op het gehoor."},
+  {"order": 6, "upper": "Ζ", "lower": "ζ", "name": "dzèta", "translit": "dz", "sound": "dz of zd", "ex": "ζητεῖ", "exNl": "(hij) zoekt", "confusable": ["Ξ", "ξ"], "looksLike": "", "note": ""},
+  {"order": 7, "upper": "Η", "lower": "η", "name": "èta", "translit": "è", "sound": "è (als in het Frans 'bête')", "ex": "ἡδονή", "exNl": "genot, vreugde", "confusable": [], "looksLike": "H (LET OP: klinkt NIET als 'h', maar als 'è' — klassieke valse vriend voor beginners)", "note": ""},
+  {"order": 8, "upper": "Θ", "lower": "θ", "name": "thèta", "translit": "th", "sound": "t/th", "ex": "θάνατος", "exNl": "de dood", "confusable": ["Φ", "φ"], "looksLike": "", "note": ""},
+  {"order": 9, "upper": "Ι", "lower": "ι", "name": "iota", "translit": "i", "sound": "i", "ex": "ἱερός", "exNl": "heilig", "confusable": [], "looksLike": "", "note": ""},
   {"order": 10, "upper": "Κ", "lower": "κ", "name": "kappa", "translit": "k", "sound": "k", "ex": "καλός", "exNl": "mooi", "confusable": ["Χ", "χ"], "looksLike": "", "note": ""},
-  {"order": 11, "upper": "Λ", "lower": "λ", "name": "lambda", "translit": "l", "sound": "l", "ex": "λόγος", "exNl": "woord", "confusable": ["Δ", "δ"], "looksLike": "", "note": ""},
+  {"order": 11, "upper": "Λ", "lower": "λ", "name": "labda", "translit": "l", "sound": "l", "ex": "λόγος", "exNl": "woord", "confusable": ["Δ", "δ"], "looksLike": "", "note": ""},
   {"order": 12, "upper": "Μ", "lower": "μ", "name": "mu", "translit": "m", "sound": "m", "ex": "μάχη", "exNl": "gevecht, strijd", "confusable": ["Ν", "ν"], "looksLike": "", "note": ""},
   {"order": 13, "upper": "Ν", "lower": "ν", "name": "nu", "translit": "n", "sound": "n", "ex": "νεκρός", "exNl": "lijk, dode", "confusable": ["Μ", "μ"], "looksLike": "N/v (kleine nu lijkt op een Latijnse 'v', klinkt als 'n')", "note": ""},
-  {"order": 14, "upper": "Ξ", "lower": "ξ", "name": "xi", "translit": "x", "sound": "ks", "ex": "ξένος", "exNl": "vreemdeling", "confusable": ["Ζ", "ζ"], "looksLike": "", "note": ""},
-  {"order": 15, "upper": "Ο", "lower": "ο", "name": "omikron", "translit": "o", "sound": "korte o (zoals in 'pot')", "ex": "ὄνομα", "exNl": "naam", "confusable": ["Ω", "ω"], "looksLike": "", "note": "Omikron is KORT, omega (letter 24) is LANG - beide zien er rond uit, dus makkelijk te verwarren."},
+  {"order": 14, "upper": "Ξ", "lower": "ξ", "name": "ksi", "translit": "ks", "sound": "ks, x", "ex": "ξένος", "exNl": "vreemdeling", "confusable": ["Ζ", "ζ"], "looksLike": "", "note": ""},
+  {"order": 15, "upper": "Ο", "lower": "ο", "name": "omikron", "translit": "o", "sound": "o", "ex": "ὄνομα", "exNl": "naam", "confusable": ["Ω", "ω"], "looksLike": "", "note": "Omikron is kort, omega (letter 24) is lang — beide zien er rond uit, dus makkelijk te verwarren."},
   {"order": 16, "upper": "Π", "lower": "π", "name": "pi", "translit": "p", "sound": "p", "ex": "πατήρ", "exNl": "vader", "confusable": ["Γ", "γ"], "looksLike": "", "note": ""},
-  {"order": 17, "upper": "Ρ", "lower": "ρ", "name": "rho", "translit": "r", "sound": "r (rollende r)", "ex": "ῥίπτω", "exNl": "werpen, gooien", "confusable": [], "looksLike": "P (LET OP: klinkt NIET als 'p', maar als 'r' - klassieke valse vriend)", "note": ""},
-  {"order": 18, "upper": "Σ", "lower": "σ (begin/midden van woord) / ς (einde van woord)", "name": "sigma", "translit": "s", "sound": "s", "ex": "σῖτος", "exNl": "eten, voedsel", "confusable": [], "looksLike": "", "note": "Enige Griekse letter met twee verschillende kleine-lettervormen, afhankelijk van de positie in het woord. Goede kandidaat voor een aparte mini-oefening ('welke vorm hoort waar?')."},
+  {"order": 17, "upper": "Ρ", "lower": "ρ", "name": "rho", "translit": "r", "sound": "r", "ex": "ῥίπτω", "exNl": "werpen, gooien", "confusable": [], "looksLike": "P (LET OP: klinkt NIET als 'p', maar als 'r' — klassieke valse vriend)", "note": ""},
+  {"order": 18, "upper": "Σ", "lower": "σ (begin/midden van woord) / ς (einde van woord)", "name": "sigma", "translit": "s", "sound": "s", "ex": "σῖτος", "exNl": "eten, voedsel", "confusable": [], "looksLike": "", "note": "Enige Griekse letter met twee verschillende kleine-lettervormen: σ aan het begin/midden van een woord, ς aan het eind — bijv. βάσις."},
   {"order": 19, "upper": "Τ", "lower": "τ", "name": "tau", "translit": "t", "sound": "t", "ex": "τιμή", "exNl": "eer, eerbewijs", "confusable": [], "looksLike": "", "note": ""},
-  {"order": 20, "upper": "Υ", "lower": "υ", "name": "upsilon", "translit": "u / y", "sound": "Franse 'u' (zoals in 'tu')", "ex": "υἱός", "exNl": "zoon", "confusable": [], "looksLike": "Y (klinkt niet als Nederlandse 'y', maar als Franse 'u')", "note": ""},
-  {"order": 21, "upper": "Φ", "lower": "φ", "name": "phi", "translit": "ph", "sound": "ph/f", "ex": "φίλος", "exNl": "vriend", "confusable": ["Θ", "θ"], "looksLike": "", "note": ""},
-  {"order": 22, "upper": "Χ", "lower": "χ", "name": "chi", "translit": "ch", "sound": "ch (zoals in 'ach', geschraapt)", "ex": "χείρ", "exNl": "hand, arm", "confusable": ["Κ", "κ"], "looksLike": "X (LET OP: klinkt NIET als 'x', maar als 'ch' - klassieke valse vriend)", "note": ""},
+  {"order": 20, "upper": "Υ", "lower": "υ", "name": "upsilon", "translit": "u", "sound": "uu/u", "ex": "υἱός", "exNl": "zoon", "confusable": [], "looksLike": "Y (klinkt niet als Nederlandse 'y', maar als Franse 'u')", "note": ""},
+  {"order": 21, "upper": "Φ", "lower": "φ", "name": "phi", "translit": "ph", "sound": "ph/f (oorspronkelijk uitgesproken als in het Engels 'power')", "ex": "φίλος", "exNl": "vriend", "confusable": ["Θ", "θ"], "looksLike": "", "note": ""},
+  {"order": 22, "upper": "Χ", "lower": "χ", "name": "chi", "translit": "ch", "sound": "kh/ch", "ex": "χείρ", "exNl": "hand, arm", "confusable": ["Κ", "κ"], "looksLike": "X (LET OP: klinkt NIET als 'x', maar als 'ch' — klassieke valse vriend)", "note": ""},
   {"order": 23, "upper": "Ψ", "lower": "ψ", "name": "psi", "translit": "ps", "sound": "ps", "ex": "ψυχή", "exNl": "ziel, geest", "confusable": [], "looksLike": "", "note": ""},
-  {"order": 24, "upper": "Ω", "lower": "ω", "name": "omega", "translit": "ō", "sound": "lange o (zoals in het Engelse 'go')", "ex": "ὡς", "exNl": "(zo)als", "confusable": ["Ο", "ο"], "looksLike": "", "note": "Omega is LANG, omikron (letter 15) is KORT - zie ook de note daar."},
+  {"order": 24, "upper": "Ω", "lower": "ω", "name": "omega", "translit": "oo", "sound": "oo (oorspronkelijk als in het Engels 'morning')", "ex": "ὡς", "exNl": "(zo)als", "confusable": ["Ο", "ο"], "looksLike": "", "note": "Omega is lang, omikron (letter 15) is kort — zie ook de note daar."},
 ];
+
+
+// Build a lowercase-Greek-char -> Latin-letter map from EL_ALFABET, then strip
+// accents/breathing marks (Unicode combining marks) before mapping each
+// character — same approach as the original standalone alfabet app.
+const EL_CHAR_MAP = {};
+EL_ALFABET.forEach(l=>{
+  EL_CHAR_MAP[l.lower] = l.translit;
+  if(l.lower.includes('/')){
+    l.lower.split('/').map(s=>s.trim()).forEach(f=>{ EL_CHAR_MAP[f]=l.translit; });
+  }
+});
+EL_CHAR_MAP['σ'] = 's';
+EL_CHAR_MAP['ς'] = 's';
+function elTransliterate(word){
+  const stripped = word.normalize('NFD').replace(/[\u0300-\u036f\u0313\u0314\u0342\u0345]/g,'');
+  let out = '';
+  for(const ch of stripped){ out += EL_CHAR_MAP[ch] ?? ch; }
+  return out;
+}
+
 
 /* ================= STATE ================= */
 let currentLang = 'la';
@@ -4326,21 +4360,118 @@ function elAlfabetLeren(){
 }
 
 function elAlfabetOefenen(){
-  const cats = {
-    letters: {
-      title: 'Letters en namen',
-      sub: 'hoofdletter/kleine letter ↔ naam',
-      words: EL_ALFABET.map(l=>({ greek: `${l.upper} ${l.lower}`, nl: l.name })),
-      vocabOnly: true
-    },
-    woorden: {
-      title: 'Voorbeeldwoorden',
-      sub: 'Grieks ↔ Nederlands',
-      words: EL_ALFABET.map(l=>({ greek: l.ex, nl: l.exNl })),
-      vocabOnly: true
+  const wrapId = 'elmode-' + Math.random().toString(36).slice(2,8);
+  setTimeout(()=>initElAlfabetOefenen(wrapId), 0);
+  return `<div id="${wrapId}">
+    <h2>Kies een oefenvorm</h2>
+    <div class="cat-grid" data-role="mode-grid">
+      <button class="cat-btn" data-mode="letters"><strong>Letters en namen</strong><span>Letter → naam, of naam → letter (via het schuifje)</span></button>
+      <button class="cat-btn" data-mode="matching"><strong>Hoofdletter ↔ kleine letter</strong><span>Match de hoofdletters met hun kleine letter</span></button>
+      <button class="cat-btn" data-mode="translit"><strong>Transliteratie</strong><span>Kies de juiste Latijnse schrijfwijze van een woord</span></button>
+      <button class="cat-btn" data-mode="woorden"><strong>Voorbeeldwoorden</strong><span>Grieks ↔ Nederlandse betekenis</span></button>
+    </div>
+    <div data-role="mode-content"></div>
+  </div>`;
+}
+
+function initElAlfabetOefenen(wrapId){
+  const root = document.getElementById(wrapId);
+  if(!root) return;
+  const modeGrid = root.querySelector('[data-role="mode-grid"]');
+  const modeContent = root.querySelector('[data-role="mode-content"]');
+
+  const lettersCat = { letters: { title:'Letters en namen', sub:'', words: EL_ALFABET.map(l=>({ greek:`${l.upper} ${l.lower}`, nl: l.name })), vocabOnly:true } };
+  const translitCat = { translit: { title:'Transliteratie', sub:'', words: EL_ALFABET.map(l=>({ greek: l.ex, nl: elTransliterate(l.ex) })), vocabOnly:true } };
+  const woordenCat = { woorden: { title:'Voorbeeldwoorden', sub:'', words: EL_ALFABET.map(l=>({ greek: l.ex, nl: l.exNl })), vocabOnly:true } };
+
+  Array.from(modeGrid.querySelectorAll('.cat-btn')).forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      Array.from(modeGrid.querySelectorAll('.cat-btn')).forEach(b=>b.classList.toggle('active', b===btn));
+      const mode = btn.dataset.mode;
+      if(mode==='matching'){
+        modeContent.innerHTML = renderMatchingGame();
+        setTimeout(()=>initMatchingGame(modeContent), 0);
+      } else if(mode==='letters'){
+        modeContent.innerHTML = renderOefenCategoryPicker(lettersCat, null, (w)=>w.greek, null, true);
+      } else if(mode==='translit'){
+        modeContent.innerHTML = renderOefenCategoryPicker(translitCat, null, (w)=>w.greek, null, true);
+      } else if(mode==='woorden'){
+        modeContent.innerHTML = renderOefenCategoryPicker(woordenCat, null, (w)=>w.greek, null, true);
+      }
+    });
+  });
+}
+
+function renderMatchingGame(){
+  return `<div data-role="match-wrap">
+    <p class="quiz-meta" style="margin-bottom:10px;">Tik een hoofdletter en de bijbehorende kleine letter.</p>
+    <div class="match-grid" data-role="match-grid"></div>
+    <p class="feedback" data-role="match-feedback" style="margin-top:14px;"></p>
+    <button class="next-btn show" data-role="match-again" style="display:none;">Nog een rondje →</button>
+  </div>`;
+}
+
+function initMatchingGame(container){
+  const PAIR_COUNT = 6;
+  const grid = container.querySelector('[data-role="match-grid"]');
+  const feedback = container.querySelector('[data-role="match-feedback"]');
+  const againBtn = container.querySelector('[data-role="match-again"]');
+
+  function start(){
+    feedback.textContent = ''; feedback.className='feedback';
+    againBtn.style.display = 'none';
+    const chosen = shuffle([...EL_ALFABET]).slice(0, PAIR_COUNT);
+    const tiles = shuffle([
+      ...chosen.map(l=>({ key:l.name, form:'upper', text:l.upper })),
+      ...chosen.map(l=>({ key:l.name, form:'lower', text:l.lower }))
+    ]);
+    let matchedCount = 0;
+    let firstPick = null;
+    grid.innerHTML = '';
+    const tileEls = tiles.map((t,i)=>{
+      const btn = document.createElement('button');
+      btn.className = 'match-tile';
+      btn.textContent = t.text;
+      btn.addEventListener('click', ()=>handlePick(i, btn));
+      grid.appendChild(btn);
+      return btn;
+    });
+    function handlePick(i, btn){
+      if(btn.disabled || btn.classList.contains('selected')) return;
+      if(firstPick===null){
+        firstPick = {i, btn};
+        btn.classList.add('selected');
+        return;
+      }
+      if(firstPick.i===i) return;
+      const a = tiles[firstPick.i], b = tiles[i];
+      const isMatch = a.key===b.key && a.form!==b.form;
+      if(isMatch){
+        firstPick.btn.classList.remove('selected');
+        firstPick.btn.classList.add('matched');
+        btn.classList.add('matched');
+        firstPick.btn.disabled = true; btn.disabled = true;
+        matchedCount++;
+        firstPick = null;
+        if(matchedCount===PAIR_COUNT){
+          feedback.textContent = 'Goed gedaan — alle paren gevonden!';
+          feedback.className = 'feedback good';
+          againBtn.style.display = 'inline-block';
+        }
+      } else {
+        btn.classList.add('wrong-flash');
+        firstPick.btn.classList.add('wrong-flash');
+        const prevBtn = firstPick.btn;
+        setTimeout(()=>{
+          btn.classList.remove('wrong-flash');
+          prevBtn.classList.remove('wrong-flash','selected');
+        }, 500);
+        firstPick = null;
+      }
     }
-  };
-  return renderOefenCategoryPicker(cats, null, (w)=>w.greek);
+  }
+  againBtn.addEventListener('click', start);
+  start();
 }
 
 /* ================= GENERIC OEFENEN ENGINE ================= */
@@ -4383,9 +4514,9 @@ function normalizeNl(nl){
 }
 function normAnswer(s){ return s.trim().toLowerCase(); }
 
-function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm){
+function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm, mcOnly){
   const wrapId = 'oefen-' + Math.random().toString(36).slice(2,8);
-  setTimeout(()=>initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm), 0);
+  setTimeout(()=>initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOnly), 0);
   return `<div id="${wrapId}">
     <h2>Kies een categorie</h2>
     <div class="cat-grid" data-role="cat-grid"></div>
@@ -4416,7 +4547,7 @@ function renderOefenCategoryPicker(cats, questionTemplate, lemmaFn, describeForm
   </div>`;
 }
 
-function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
+function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm, mcOnly){
   const root = document.getElementById(wrapId);
   if(!root) return;
   const catGrid = root.querySelector('[data-role="cat-grid"]');
@@ -4577,7 +4708,7 @@ function initOefenen(wrapId, cats, questionTemplate, lemmaFn, describeForm){
       else type = Math.random()<0.5 ? 'vorm' : 'vertaal';
       current = type==='vorm' ? buildVormQuestion() : buildVertaalQuestion();
     }
-    current.answerMode = Math.random()<(1/3) ? 'mc' : 'input';
+    current.answerMode = mcOnly ? 'mc' : (Math.random()<(1/3) ? 'mc' : 'input');
     hintTaps = 0;
 
     questionText.innerHTML = current.questionHTML;
